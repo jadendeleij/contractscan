@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 type UserState = {
   user: User | null;
@@ -14,20 +14,22 @@ export function useUser(): UserState {
 
   useEffect(() => {
     const supabase = createClient();
+    let cancelled = false;
 
-    // Haal huidige sessie op bij mount
-    supabase.auth.getUser().then(({ data }) => {
-      setState({ user: data.user, loading: false });
-    });
+    async function init() {
+      const { data } = await supabase.auth.getUser();
+      if (!cancelled) setState({ user: data.user, loading: false });
+    }
+    init();
 
-    // Luister naar auth-wijzigingen (inloggen, uitloggen, token-refresh)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setState({ user: session?.user ?? null, loading: false });
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return state;
