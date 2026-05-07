@@ -195,7 +195,7 @@ export default function Home() {
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────── */}
-      <section className="pt-32 pb-28 px-6 text-center bg-gradient-to-b from-blue-50 via-white to-white">
+      <section className="pt-32 pb-12 sm:pb-28 px-6 text-center bg-gradient-to-b from-blue-50 via-white to-white">
         <div className="max-w-4xl mx-auto">
           <span className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-7">
             <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
@@ -223,7 +223,7 @@ export default function Home() {
           </div>
 
           {/* Social proof */}
-          <div className="w-full max-w-lg bg-white border border-slate-100 rounded-2xl shadow-sm divide-x divide-slate-100 grid grid-cols-3">
+          <div className="w-full max-w-lg mx-auto bg-white border border-slate-100 rounded-2xl shadow-sm divide-x divide-slate-100 grid grid-cols-3">
             <div className="flex flex-col items-center gap-1 px-4 py-4">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -246,7 +246,7 @@ export default function Home() {
       </section>
 
       {/* ── HOE HET WERKT (GIF-sectie) ────────────────── */}
-      <section id="hoe-het-werkt" className="py-24 px-6 bg-white">
+      <section id="hoe-het-werkt" className="py-12 md:py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Hoe het werkt</h2>
