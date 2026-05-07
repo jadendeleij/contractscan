@@ -19,6 +19,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import TrustSection from "./components/TrustSection";
 import FAQSection from "./components/FAQSection";
+import WaitlistForm from "./components/WaitlistForm";
 
 /* ── DATA ─────────────────────────────────────── */
 
@@ -205,16 +206,16 @@ export default function Home() {
             ContractScan AI leest elk contract voor je uit, markeert verborgen risico&apos;s en legt alles uit in gewone taal — zodat jij met vertrouwen tekent.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/register" className="group inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300">
-              Scan gratis
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <a href="#hoe-het-werkt" className="inline-flex items-center justify-center gap-2 border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold px-8 py-4 rounded-xl text-lg transition-all">
-              <Info className="w-5 h-5" />
-              Meer info
-            </a>
+          <div className="mb-4">
+            <WaitlistForm />
           </div>
+          <a
+            href="#hoe-het-werkt"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors mb-10"
+          >
+            <Info className="w-3.5 h-3.5" />
+            Hoe werkt het?
+          </a>
 
           {/* Social proof */}
           <div className="inline-flex flex-col sm:flex-row items-center gap-6 bg-white border border-slate-100 rounded-2xl px-8 py-5 shadow-sm">
