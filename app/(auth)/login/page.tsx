@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import OAuthButtons from "@/app/components/OAuthButtons";
 
 function LoginForm() {
   const router = useRouter();
@@ -48,6 +49,21 @@ function LoginForm() {
         </a>
       </p>
 
+      {/* Google OAuth */}
+      <OAuthButtons />
+
+      {/* Divider */}
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-100" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-3 text-xs font-medium text-slate-400 uppercase tracking-wide">
+            of met e-mail
+          </span>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {/* E-mail */}
         <div className="flex flex-col gap-1.5">
@@ -72,10 +88,7 @@ function LoginForm() {
             <label htmlFor="password" className="text-sm font-medium text-slate-700">
               Wachtwoord
             </label>
-            <a
-              href="/forgot-password"
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
-            >
+            <a href="/forgot-password" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
               Wachtwoord vergeten?
             </a>
           </div>
@@ -93,6 +106,7 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Wachtwoord verbergen" : "Wachtwoord tonen"}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -100,14 +114,12 @@ function LoginForm() {
           </div>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading}

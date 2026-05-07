@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle } from "lucide-react";
+import OAuthButtons from "@/app/components/OAuthButtons";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -90,6 +91,21 @@ export default function RegisterPage() {
           Inloggen
         </a>
       </p>
+
+      {/* Google OAuth */}
+      <OAuthButtons />
+
+      {/* Divider */}
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-100" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-3 text-xs font-medium text-slate-400 uppercase tracking-wide">
+            of met e-mail
+          </span>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {/* E-mail */}
