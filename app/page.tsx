@@ -223,25 +223,23 @@ export default function Home() {
           </div>
 
           {/* Social proof */}
-          <div className="inline-flex flex-col sm:flex-row items-center gap-6 bg-white border border-slate-100 rounded-2xl px-8 py-5 shadow-sm">
-            <div className="flex flex-col items-center gap-1">
+          <div className="w-full max-w-lg bg-white border border-slate-100 rounded-2xl shadow-sm divide-x divide-slate-100 grid grid-cols-3">
+            <div className="flex flex-col items-center gap-1 px-4 py-4">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                  <Star key={i} className="w-3.5 h-3.5 sm:w-5 sm:h-5 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <span className="text-sm font-semibold text-slate-800">4,8 / 5</span>
-              <span className="text-xs text-slate-400">op basis van 1.240 reviews</span>
+              <span className="text-sm font-bold text-slate-800">4,8 / 5</span>
+              <span className="text-[10px] sm:text-xs text-slate-400 text-center leading-tight">1.240 reviews</span>
             </div>
-            <div className="hidden sm:block w-px h-12 bg-slate-100" />
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="text-2xl font-extrabold text-slate-900">3.800+</span>
-              <span className="text-sm text-slate-500">ZZP&apos;ers vertrouwen ons</span>
+            <div className="flex flex-col items-center justify-center gap-0.5 px-4 py-4">
+              <span className="text-xl sm:text-2xl font-extrabold text-slate-900">3.800+</span>
+              <span className="text-[10px] sm:text-xs text-slate-500 text-center leading-tight">ZZP&apos;ers actief</span>
             </div>
-            <div className="hidden sm:block w-px h-12 bg-slate-100" />
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="text-2xl font-extrabold text-slate-900">640+</span>
-              <span className="text-sm text-slate-500">MKB-bedrijven actief</span>
+            <div className="flex flex-col items-center justify-center gap-0.5 px-4 py-4">
+              <span className="text-xl sm:text-2xl font-extrabold text-slate-900">640+</span>
+              <span className="text-[10px] sm:text-xs text-slate-500 text-center leading-tight">MKB-bedrijven</span>
             </div>
           </div>
         </div>
@@ -426,8 +424,8 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Feature comparison table */}
-          <div className="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm mt-6">
+          {/* Feature comparison table — desktop only */}
+          <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-100 shadow-sm mt-6">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
@@ -469,8 +467,8 @@ export default function Home() {
             </table>
           </div>
 
-          {/* Table legend */}
-          <div className="flex items-center justify-between mt-4 flex-wrap gap-3">
+          {/* Table legend — desktop only */}
+          <div className="hidden md:flex items-center justify-between mt-4 flex-wrap gap-3">
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Onmisbare functies voor professionals</span>
