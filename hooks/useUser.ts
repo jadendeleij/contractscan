@@ -16,8 +16,8 @@ export function useUser(): UserState {
     const supabase = createClient();
 
     // Haal huidige sessie op bij mount
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setState({ user, loading: false });
+    supabase.auth.getUser().then(({ data }) => {
+      setState({ user: data.user, loading: false });
     });
 
     // Luister naar auth-wijzigingen (inloggen, uitloggen, token-refresh)
