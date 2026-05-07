@@ -19,30 +19,35 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import TrustSection from "./components/TrustSection";
 import FAQSection from "./components/FAQSection";
-import WaitlistForm from "./components/WaitlistForm";
 
 /* ── DATA ─────────────────────────────────────── */
 
 const steps = [
   {
     number: "01",
-    icon: <Upload className="w-5 h-5" />,
+    icon: <Upload className="w-7 h-7" />,
     title: "Upload je contract",
     description: "Sleep een PDF of Word-bestand naar het uploadvak, of plak de tekst direct in het veld.",
+    gradient: "from-blue-50 to-indigo-100",
+    iconBg: "bg-blue-600",
     gifFile: "upload-demo.gif",
   },
   {
     number: "02",
-    icon: <ScanText className="w-5 h-5" />,
+    icon: <ScanText className="w-7 h-7" />,
     title: "AI analyseert de inhoud",
     description: "Onze AI scant elke clausule en markeert risico's, verplichtingen en afwijkingen van de norm.",
+    gradient: "from-violet-50 to-purple-100",
+    iconBg: "bg-violet-600",
     gifFile: "analyse-demo.gif",
   },
   {
     number: "03",
-    icon: <FileCheck className="w-5 h-5" />,
+    icon: <FileCheck className="w-7 h-7" />,
     title: "Ontvang je rapport",
     description: "Bekijk een helder overzicht met een risicoscore, uitleg in gewone taal en concrete aanbevelingen.",
+    gradient: "from-emerald-50 to-teal-100",
+    iconBg: "bg-emerald-600",
     gifFile: "rapport-demo.gif",
   },
 ];
@@ -206,16 +211,16 @@ export default function Home() {
             ContractScan AI leest elk contract voor je uit, markeert verborgen risico&apos;s en legt alles uit in gewone taal — zodat jij met vertrouwen tekent.
           </p>
 
-          <div className="mb-4">
-            <WaitlistForm />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Link href="/register" className="group inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300">
+              Scan gratis
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <a href="#hoe-het-werkt" className="inline-flex items-center justify-center gap-2 border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold px-8 py-4 rounded-xl text-lg transition-all">
+              <Info className="w-5 h-5" />
+              Meer info
+            </a>
           </div>
-          <a
-            href="#hoe-het-werkt"
-            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors mb-10"
-          >
-            <Info className="w-3.5 h-3.5" />
-            Hoe werkt het?
-          </a>
 
           {/* Social proof */}
           <div className="inline-flex flex-col sm:flex-row items-center gap-6 bg-white border border-slate-100 rounded-2xl px-8 py-5 shadow-sm">
@@ -255,18 +260,21 @@ export default function Home() {
                 key={step.number}
                 className="group flex flex-col rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="bg-slate-100 aspect-video flex items-center justify-center">
-                  {/* Replace this div with: <img src={`/gifs/${step.gifFile}`} alt="demo" className="w-full h-full object-cover" /> */}
-                  <div className="flex flex-col items-center gap-3 text-slate-400">
-                    <div className="w-14 h-14 bg-slate-200 rounded-xl flex items-center justify-center group-hover:bg-blue-100 group-hover:text-blue-500 transition-colors">
-                      {step.icon}
-                    </div>
-                    <span className="text-xs font-medium">GIF: {step.gifFile}</span>
-                    <span className="text-xs text-slate-300">/public/gifs/</span>
+                {/* Visueel blok — vervang door <img src={`/gifs/${step.gifFile}`} ... /> zodra GIFs klaar zijn */}
+                <div className={`bg-gradient-to-br ${step.gradient} aspect-video flex flex-col items-center justify-center gap-4 relative overflow-hidden`}>
+                  {/* Decoratieve cirkels op achtergrond */}
+                  <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white/20" />
+                  <div className="absolute -bottom-8 -left-4 w-24 h-24 rounded-full bg-white/20" />
+
+                  <div className={`relative z-10 w-16 h-16 ${step.iconBg} rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    {step.icon}
                   </div>
+                  <span className="relative z-10 text-xs font-bold tracking-widest uppercase text-slate-400">
+                    Stap {step.number}
+                  </span>
                 </div>
+
                 <div className="p-6 flex flex-col gap-2">
-                  <span className="text-xs font-bold text-blue-600 tracking-widest uppercase">Stap {step.number}</span>
                   <h3 className="text-lg font-bold text-slate-900">{step.title}</h3>
                   <p className="text-slate-500 text-sm leading-relaxed">{step.description}</p>
                 </div>
