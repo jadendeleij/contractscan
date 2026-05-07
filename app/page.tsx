@@ -372,7 +372,7 @@ export default function Home() {
 
                   {/* CTA */}
                   <Link
-                    href="/register"
+                    href={plan.id !== "free" ? `/register?plan=${plan.id}` : "/register"}
                     className={`block w-full py-3 rounded-xl font-bold text-sm text-center transition-all active:scale-95 ${
                       plan.highlight
                         ? "bg-white text-blue-600 hover:bg-blue-50 shadow-md"

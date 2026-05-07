@@ -24,10 +24,12 @@ function OAuthButtonsInner() {
   async function signInWithGoogle() {
     setLoading(true);
     const supabase = createClient();
+    // NEXT_PUBLIC_SITE_URL zorgt voor de juiste productie-URL ipv localhost
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+        redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
       },
     });
   }
@@ -47,7 +49,6 @@ function OAuthButtonsInner() {
   );
 }
 
-// Suspense boundary intern zodat je dit overal kunt gebruiken
 export default function OAuthButtons() {
   return (
     <Suspense fallback={
