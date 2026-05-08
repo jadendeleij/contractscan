@@ -20,6 +20,7 @@ import Footer from "./components/Footer";
 import TrustSection from "./components/TrustSection";
 import FAQSection from "./components/FAQSection";
 import BlogSection from "./components/BlogSection";
+import ScheduledMaintenanceBanner from "./components/ScheduledMaintenanceBanner";
 import { Suspense } from "react";
 
 /* ── DATA ─────────────────────────────────────── */
@@ -194,6 +195,9 @@ function CardFeatureItem({ label, isKey, dark }: { label: string; isKey?: boolea
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
+      <Suspense fallback={null}>
+        <ScheduledMaintenanceBanner />
+      </Suspense>
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────── */}

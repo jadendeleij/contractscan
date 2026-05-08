@@ -3,13 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PROTECTED_PATHS = ["/dashboard", "/scan", "/account", "/admin"];
 const AUTH_PATHS = ["/login", "/register"];
-// These paths always pass through even during maintenance / dev mode
+// These paths always pass through even during maintenance
 const BYPASS_PATHS = ["/onderhoud", "/api/bypass", "/api/", "/_next/", "/favicon.ico", "/login", "/register"];
 
 /* ── Module-level cache (helps when Edge instance stays warm) ── */
-let _modeCache: { maintenance: boolean; dev: boolean; ts: number } | null = null;
+let _modeCache: { maintenance: boolean; ts: number } | null = null;
 
-async function getSiteMode(): Promise<{ maintenance: boolean; dev: boolean }> {
+async function getSiteMode(): Promise<{ maintenance: boolean }> {
   const now = Date.now();
   if (_modeCache && now - _modeCache.ts < 30_000) return _modeCache;
 
@@ -24,11 +24,17 @@ async function getSiteMode(): Promise<{ maintenance: boolean; dev: boolean }> {
     });
     if (!res.ok) throw new Error("fetch failed");
     const rows: { key: string; value: string }[] = await res.json();
-    const get = (k: string) => rows.find((r) => r.key === k)?.value === "true";
-    _modeCache = { maintenance: get("maintenance_mode"), dev: get("dev_mode"), ts: now };
+
+    const maintenanceOn = rows.find((r) => r.key === "maintenance_mode")?.value === "true";
+    const scheduledAt = rows.find((r) => r.key === "maintenance_scheduled_at")?.value;
+    const scheduledActive = scheduledAt
+      ? (() => { const d = new Date(scheduledAt); return !isNaN(d.getTime()) && d <= new Date(); })()
+      : false;
+
+    _modeCache = { maintenance: maintenanceOn || scheduledActive, ts: now };
   } catch {
     // Fail open — never block the site due to a settings fetch error
-    _modeCache = { maintenance: false, dev: false, ts: now };
+    _modeCache = { maintenance: false, ts: now };
   }
   return _modeCache;
 }
@@ -58,32 +64,24 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // ── Site mode checks (maintenance / dev) ────────────────────────
+  // ── Maintenance check ────────────────────────────────────────
   const isAlwaysAllowed = BYPASS_PATHS.some((p) => pathname.startsWith(p));
   const isAdminPath = pathname.startsWith("/admin");
 
   if (!isAlwaysAllowed && !isAdminPath) {
     const mode = await getSiteMode();
     const bypassCookie = request.cookies.get("_bypass");
-    // Logged-in users and bypass-cookie holders always pass through
+    // Logged-in users and bypass-cookie holders can always pass through
     const canPass = !!user || !!bypassCookie;
 
     if (mode.maintenance && !canPass) {
       const url = request.nextUrl.clone();
       url.pathname = "/onderhoud";
-      url.searchParams.set("mode", "maintenance");
-      return NextResponse.redirect(url);
-    }
-
-    if (mode.dev && !canPass) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/onderhoud";
-      url.searchParams.set("mode", "dev");
       return NextResponse.redirect(url);
     }
   }
 
-  // ── Auth checks ─────────────────────────────────────────────────
+  // ── Auth checks ─────────────────────────────────────────────
   if (!user && PROTECTED_PATHS.some((p) => pathname.startsWith(p))) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";

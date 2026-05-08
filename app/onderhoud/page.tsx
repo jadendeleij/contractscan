@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Wrench, Code2, Clock, ArrowRight } from "lucide-react";
+import { Wrench, Clock, ArrowRight } from "lucide-react";
 
 async function getSettings(): Promise<Record<string, string>> {
   try {
@@ -14,21 +14,10 @@ async function getSettings(): Promise<Record<string, string>> {
   }
 }
 
-export default async function OnderhoudPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ mode?: string }>;
-}) {
-  const { mode } = await searchParams;
+export default async function OnderhoudPage() {
   const settings = await getSettings();
-  const isDev = mode === "dev" || (settings.dev_mode === "true" && settings.maintenance_mode !== "true");
-
   const message =
-    settings.maintenance_message ||
-    (isDev
-      ? "We zijn druk bezig met nieuwe functionaliteit. Kom snel terug!"
-      : "We zijn even bezig met onderhoud. We zijn zo terug.");
-
+    settings.maintenance_message || "We zijn even bezig met onderhoud. We zijn zo terug.";
   const endTimeRaw = settings.maintenance_end;
   const parsedEnd = endTimeRaw ? new Date(endTimeRaw) : null;
   const validEnd = parsedEnd && !isNaN(parsedEnd.getTime());
@@ -37,11 +26,7 @@ export default async function OnderhoudPage({
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center px-6 text-center">
       {/* Icon */}
       <div className="w-20 h-20 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mb-8">
-        {isDev ? (
-          <Code2 className="w-10 h-10 text-blue-400" />
-        ) : (
-          <Wrench className="w-10 h-10 text-blue-400" />
-        )}
+        <Wrench className="w-10 h-10 text-blue-400" />
       </div>
 
       {/* Branding */}
@@ -56,14 +41,10 @@ export default async function OnderhoudPage({
       </div>
 
       {/* Heading */}
-      <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
-        {isDev ? "We bouwen iets moois" : "Even geduld"}
-      </h1>
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Even geduld</h1>
 
       {/* Message */}
-      <p className="text-slate-400 text-lg max-w-md leading-relaxed mb-6">
-        {message}
-      </p>
+      <p className="text-slate-400 text-lg max-w-md leading-relaxed mb-6">{message}</p>
 
       {/* End time */}
       {validEnd && parsedEnd && (

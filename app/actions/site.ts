@@ -17,6 +17,7 @@ function revalidateAll() {
   revalidatePath("/admin/beheer");
   revalidatePath("/admin");
   revalidatePath("/onderhoud");
+  revalidatePath("/");
 }
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
@@ -55,6 +56,16 @@ export async function toggleDevMode(enabled: boolean) {
     ...(enabled ? [{ key: "maintenance_mode", value: "false", updated_at: new Date().toISOString() }] : []),
   ];
   await db.from("site_settings").upsert(rows, { onConflict: "key" });
+  revalidateAll();
+}
+
+export async function saveScheduledMaintenance(scheduledAt: string) {
+  await requireAdmin();
+  const db = createAdminClient();
+  await db.from("site_settings").upsert(
+    { key: "maintenance_scheduled_at", value: scheduledAt, updated_at: new Date().toISOString() },
+    { onConflict: "key" }
+  );
   revalidateAll();
 }
 
