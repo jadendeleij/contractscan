@@ -26,6 +26,8 @@ export default async function OnderhoudPage({
       ? "We zijn druk bezig met nieuwe functionaliteit. Kom snel terug!"
       : "We zijn even bezig met onderhoud. We zijn zo terug.");
   const endTime = settings.maintenance_end;
+  const parsedEnd = endTime ? new Date(endTime) : null;
+  const validEnd = parsedEnd && !isNaN(parsedEnd.getTime());
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center px-6 text-center">
@@ -60,11 +62,11 @@ export default async function OnderhoudPage({
       </p>
 
       {/* End time */}
-      {endTime && (
+      {validEnd && parsedEnd && (
         <div className="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-300 text-sm px-4 py-2 rounded-full mb-8">
           <Clock className="w-4 h-4 text-blue-400" />
-          Verwacht terug om {new Date(endTime).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
-          {" "}op {new Date(endTime).toLocaleDateString("nl-NL", { day: "numeric", month: "long" })}
+          Verwacht terug om {parsedEnd.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
+          {" "}op {parsedEnd.toLocaleDateString("nl-NL", { day: "numeric", month: "long" })}
         </div>
       )}
 

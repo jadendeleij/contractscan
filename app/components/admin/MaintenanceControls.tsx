@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState } from "react";
-import { Wrench, Code2, Loader2, Save } from "lucide-react";
+import { Wrench, Code2, Loader2, Save, CheckCircle } from "lucide-react";
 import { toggleMaintenanceMode, toggleDevMode, saveMaintenanceMessage } from "@/app/actions/site";
 
 type Props = {
@@ -16,13 +16,18 @@ export default function MaintenanceControls({ maintenanceMode, devMode, message,
   const [msgPending, startMsgTransition] = useTransition();
   const [localMsg, setLocalMsg] = useState(message);
   const [localEnd, setLocalEnd] = useState(endTime);
+  const [saved, setSaved] = useState(false);
 
   function toggle(action: () => Promise<void>) {
     startTransition(action);
   }
 
   function saveMsg() {
-    startMsgTransition(() => saveMaintenanceMessage(localMsg, localEnd));
+    startMsgTransition(async () => {
+      await saveMaintenanceMessage(localMsg, localEnd);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    });
   }
 
   const inputCls = "w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all";
@@ -76,14 +81,22 @@ export default function MaintenanceControls({ maintenanceMode, devMode, message,
               className={inputCls}
             />
           </div>
-          <button
-            onClick={saveMsg}
-            disabled={msgPending}
-            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-60 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all"
-          >
-            {msgPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            Bericht opslaan
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={saveMsg}
+              disabled={msgPending}
+              className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-60 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all"
+            >
+              {msgPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Bericht opslaan
+            </button>
+            {saved && !msgPending && (
+              <span className="inline-flex items-center gap-1.5 text-green-600 text-sm font-semibold animate-in fade-in duration-200">
+                <CheckCircle className="w-4 h-4" />
+                Opgeslagen
+              </span>
+            )}
+          </div>
         </div>
       </section>
 

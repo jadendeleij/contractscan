@@ -13,6 +13,12 @@ async function requireAdmin() {
   if (!profile?.is_admin) throw new Error("Unauthorized");
 }
 
+function revalidateAll() {
+  revalidatePath("/admin/beheer");
+  revalidatePath("/admin");
+  revalidatePath("/onderhoud");
+}
+
 export async function getSiteSettings(): Promise<Record<string, string>> {
   const db = createAdminClient();
   const { data } = await db.from("site_settings").select("key, value");
@@ -25,22 +31,38 @@ export async function setSiteSetting(key: string, value: string) {
   await db
     .from("site_settings")
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
-  revalidatePath("/admin/beheer");
-  revalidatePath("/admin");
+  revalidateAll();
 }
 
 export async function toggleMaintenanceMode(enabled: boolean) {
-  await setSiteSetting("maintenance_mode", String(enabled));
+  await requireAdmin();
+  const db = createAdminClient();
+  await db.from("site_settings").upsert(
+    { key: "maintenance_mode", value: String(enabled), updated_at: new Date().toISOString() },
+    { onConflict: "key" }
+  );
+  revalidateAll();
 }
 
 export async function toggleDevMode(enabled: boolean) {
-  await setSiteSetting("dev_mode", String(enabled));
+  await requireAdmin();
+  const db = createAdminClient();
+  await db.from("site_settings").upsert(
+    { key: "dev_mode", value: String(enabled), updated_at: new Date().toISOString() },
+    { onConflict: "key" }
+  );
+  revalidateAll();
 }
 
 export async function saveMaintenanceMessage(message: string, endTime: string) {
   await requireAdmin();
-  await Promise.all([
-    setSiteSetting("maintenance_message", message),
-    setSiteSetting("maintenance_end", endTime),
-  ]);
+  const db = createAdminClient();
+  await db.from("site_settings").upsert(
+    [
+      { key: "maintenance_message", value: message, updated_at: new Date().toISOString() },
+      { key: "maintenance_end", value: endTime, updated_at: new Date().toISOString() },
+    ],
+    { onConflict: "key" }
+  );
+  revalidateAll();
 }

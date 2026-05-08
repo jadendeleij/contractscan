@@ -64,22 +64,22 @@ export async function proxy(request: NextRequest) {
 
   if (!isAlwaysAllowed && !isAdminPath) {
     const mode = await getSiteMode();
+    const bypassCookie = request.cookies.get("_bypass");
+    // Logged-in users and bypass-cookie holders always pass through
+    const canPass = !!user || !!bypassCookie;
 
-    if (mode.maintenance) {
+    if (mode.maintenance && !canPass) {
       const url = request.nextUrl.clone();
       url.pathname = "/onderhoud";
       url.searchParams.set("mode", "maintenance");
       return NextResponse.redirect(url);
     }
 
-    if (mode.dev) {
-      const bypassCookie = request.cookies.get("_bypass");
-      if (!bypassCookie) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/onderhoud";
-        url.searchParams.set("mode", "dev");
-        return NextResponse.redirect(url);
-      }
+    if (mode.dev && !canPass) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onderhoud";
+      url.searchParams.set("mode", "dev");
+      return NextResponse.redirect(url);
     }
   }
 
