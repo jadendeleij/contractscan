@@ -18,28 +18,19 @@ function supabaseHeaders() {
   };
 }
 
-// Writes maintenance_mode=true to the DB so the admin panel reflects active state.
-// Fire-and-forget: called without await so it doesn't block the redirect.
-function activateMaintenanceModeInDB() {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  fetch(`${base}/rest/v1/site_settings?key=eq.maintenance_mode`, {
-    method: "PATCH",
-    headers: supabaseHeaders(),
-    body: JSON.stringify({ value: "true" }),
-  }).catch(() => {});
-}
-
 async function getSiteMode(): Promise<{ maintenance: boolean }> {
   const now = Date.now();
   if (_modeCache && now - _modeCache.ts < 30_000) return _modeCache;
 
   try {
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/site_settings?select=key,value`;
-    const res = await fetch(url, {
-      headers: {
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
-      },
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const authHeaders = {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+    };
+
+    const res = await fetch(`${base}/rest/v1/site_settings?select=key,value`, {
+      headers: authHeaders,
       signal: AbortSignal.timeout(1500),
     });
     if (!res.ok) throw new Error("fetch failed");
@@ -51,9 +42,17 @@ async function getSiteMode(): Promise<{ maintenance: boolean }> {
       ? (() => { const d = new Date(scheduledAt); return !isNaN(d.getTime()) && d <= new Date(); })()
       : false;
 
-    // Scheduled time just passed: persist the active state so admin panel updates.
+    // Scheduled time just passed: synchronously persist so the page that renders
+    // right after this call already sees maintenance_mode=true in the DB.
     if (scheduledActive && !maintenanceOn) {
-      activateMaintenanceModeInDB();
+      try {
+        await fetch(`${base}/rest/v1/site_settings?key=eq.maintenance_mode`, {
+          method: "PATCH",
+          headers: { ...authHeaders, "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({ value: "true" }),
+          signal: AbortSignal.timeout(2000),
+        });
+      } catch {}
     }
 
     _modeCache = { maintenance: maintenanceOn || scheduledActive, ts: now };
@@ -93,13 +92,14 @@ export async function proxy(request: NextRequest) {
   const isAlwaysAllowed = BYPASS_PATHS.some((p) => pathname.startsWith(p));
   const isAdminPath = pathname.startsWith("/admin");
 
-  if (!isAlwaysAllowed && !isAdminPath) {
+  if (!isAlwaysAllowed) {
+    // Always call getSiteMode — even for admin paths — so that scheduled
+    // activation is synchronously persisted to the DB before the page renders.
     const mode = await getSiteMode();
     const bypassCookie = request.cookies.get("_bypass");
-    // Logged-in users and bypass-cookie holders can always pass through
     const canPass = !!user || !!bypassCookie;
 
-    if (mode.maintenance && !canPass) {
+    if (mode.maintenance && !canPass && !isAdminPath) {
       const url = request.nextUrl.clone();
       url.pathname = "/onderhoud";
       return NextResponse.redirect(url);
