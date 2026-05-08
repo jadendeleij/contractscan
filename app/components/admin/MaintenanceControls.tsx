@@ -1,8 +1,8 @@
 "use client";
 
 import { useTransition, useState } from "react";
-import { Wrench, Globe, Loader2, Save, CheckCircle, X, Calendar } from "lucide-react";
-import { toggleMaintenanceMode, saveScheduledMaintenance, saveMaintenanceMessage } from "@/app/actions/site";
+import { Wrench, Globe, Loader2, Save, CheckCircle, X } from "lucide-react";
+import { toggleMaintenanceMode, savePlannedMaintenance, saveScheduledMaintenance } from "@/app/actions/site";
 
 type Props = {
   maintenanceMode: boolean;
@@ -13,73 +13,53 @@ type Props = {
 
 export default function MaintenanceControls({ maintenanceMode, message, endTime, scheduledAt }: Props) {
   const [modePending, startModeTransition] = useTransition();
-  const [schedulePending, startScheduleTransition] = useTransition();
-  const [msgPending, startMsgTransition] = useTransition();
+  const [savePending, startSaveTransition] = useTransition();
 
-  // ── Schedule section ──────────────────────────────────────────
+  const [localMsg, setLocalMsg] = useState(message);
+  const [localEnd, setLocalEnd] = useState(endTime);
   const [localScheduled, setLocalScheduled] = useState(scheduledAt);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Mirrors what's actually committed to the DB so status banner updates immediately
+  // after save/cancel without waiting for a server re-render.
   const [committedSchedule, setCommittedSchedule] = useState(scheduledAt);
-  const [scheduleSaved, setScheduleSaved] = useState(false);
-  const [scheduleError, setScheduleError] = useState<string | null>(null);
 
   const hasSchedule = !!committedSchedule;
   const scheduledDate = hasSchedule ? new Date(committedSchedule) : null;
   const scheduledValid = scheduledDate && !isNaN(scheduledDate.getTime());
   const scheduledInFuture = scheduledValid && scheduledDate > new Date();
 
-  // ── Message section ───────────────────────────────────────────
-  const [localMsg, setLocalMsg] = useState(message);
-  const [localEnd, setLocalEnd] = useState(endTime);
-  const [msgSaved, setMsgSaved] = useState(false);
-  const [msgError, setMsgError] = useState<string | null>(null);
-
-  // ── Handlers ──────────────────────────────────────────────────
   function setMode(on: boolean) {
     if (on === maintenanceMode || modePending) return;
     startModeTransition(() => toggleMaintenanceMode(on));
   }
 
-  function handleSchedule() {
-    setScheduleError(null);
-    if (!localScheduled) {
-      setScheduleError("Selecteer een datum en tijd om onderhoud in te plannen.");
-      return;
-    }
-    startScheduleTransition(async () => {
+  function handleSave() {
+    setSaveError(null);
+    startSaveTransition(async () => {
       try {
-        await saveScheduledMaintenance(localScheduled);
+        await savePlannedMaintenance(localScheduled, localMsg, localEnd);
         setCommittedSchedule(localScheduled);
-        setScheduleSaved(true);
-        setTimeout(() => setScheduleSaved(false), 3000);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
       } catch (err) {
-        setScheduleError(err instanceof Error ? err.message : "Inplannen mislukt");
+        setSaveError(err instanceof Error ? err.message : "Opslaan mislukt");
       }
     });
   }
 
   function handleCancelSchedule() {
-    setScheduleError(null);
-    startScheduleTransition(async () => {
+    setSaveError(null);
+    startSaveTransition(async () => {
       try {
         await saveScheduledMaintenance("");
         setCommittedSchedule("");
         setLocalScheduled("");
-        setScheduleSaved(false);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
       } catch (err) {
-        setScheduleError(err instanceof Error ? err.message : "Annuleren mislukt");
-      }
-    });
-  }
-
-  function handleSaveMsg() {
-    setMsgError(null);
-    startMsgTransition(async () => {
-      try {
-        await saveMaintenanceMessage(localMsg, localEnd);
-        setMsgSaved(true);
-        setTimeout(() => setMsgSaved(false), 3000);
-      } catch (err) {
-        setMsgError(err instanceof Error ? err.message : "Opslaan mislukt");
+        setSaveError(err instanceof Error ? err.message : "Annuleren mislukt");
       }
     });
   }
@@ -133,14 +113,14 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
         </div>
       </section>
 
-      {/* ── Schedule future maintenance ── */}
+      {/* ── Configuration: schedule + message ── */}
       <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h2 className="text-base font-bold text-slate-800 mb-0.5">Onderhoud inplannen</h2>
+        <h2 className="text-base font-bold text-slate-800 mb-0.5">Onderhoud configureren</h2>
         <p className="text-xs text-slate-400 mb-5">
-          Kies een starttijd. Bezoekers zien dan een aankondiging en de site gaat op dat moment automatisch in onderhoudsmodus.
+          Plan een toekomstig onderhoud en stel het bericht in dat bezoekers te zien krijgen.
         </p>
 
-        {/* Existing schedule banner */}
+        {/* Scheduled status banner — always shown when a schedule exists in DB */}
         {hasSchedule && (
           <div className={`flex items-start justify-between gap-4 mb-5 p-3.5 rounded-xl border ${
             scheduledInFuture ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
@@ -152,7 +132,7 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
               <p className={`text-sm font-semibold ${scheduledInFuture ? "text-blue-800" : "text-amber-800"}`}>
                 {scheduledValid && scheduledDate
                   ? `${scheduledDate.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })} om ${scheduledDate.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}`
-                  : committedSchedule}
+                  : scheduledAt}
               </p>
               {!scheduledInFuture && (
                 <p className="text-xs text-amber-700 mt-1">
@@ -160,74 +140,40 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
                 </p>
               )}
             </div>
+            {/* Cancel is always reachable when schedule exists */}
             <button
               onClick={handleCancelSchedule}
-              disabled={schedulePending}
+              disabled={savePending}
               className={`flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-50 ${
                 scheduledInFuture
                   ? "border-blue-300 text-blue-700 hover:bg-blue-100"
                   : "border-amber-300 text-amber-700 hover:bg-amber-100"
               }`}
             >
-              {schedulePending ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+              {savePending ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
               Annuleer planning
             </button>
           </div>
         )}
 
         <div className="space-y-4">
+          {/* Schedule datetime — always visible so you can always set/change it */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Starttijd onderhoud
+              Inplannen op <span className="text-slate-400 font-normal">(optioneel)</span>
             </label>
             <input
               type="datetime-local"
               value={localScheduled}
-              onChange={(e) => { setLocalScheduled(e.target.value); setScheduleError(null); }}
+              onChange={(e) => setLocalScheduled(e.target.value)}
               className={inputCls}
             />
+            <p className="text-xs text-slate-400 mt-1.5">
+              Bezoekers zien een aankondiging. Op dit tijdstip gaat de site automatisch in onderhoudsmodus.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={handleSchedule}
-              disabled={schedulePending}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all"
-            >
-              {schedulePending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Calendar className="w-3.5 h-3.5" />}
-              {hasSchedule ? "Planning wijzigen" : "Inplannen"}
-            </button>
-            {hasSchedule && (
-              <button
-                onClick={handleCancelSchedule}
-                disabled={schedulePending}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 transition-all"
-              >
-                <X className="w-3.5 h-3.5" />
-                Annuleer planning
-              </button>
-            )}
-            {scheduleSaved && !schedulePending && (
-              <span className="inline-flex items-center gap-1.5 text-green-600 text-sm font-semibold">
-                <CheckCircle className="w-4 h-4" />
-                Ingepland
-              </span>
-            )}
-            {scheduleError && !schedulePending && (
-              <span className="text-red-600 text-sm font-medium">{scheduleError}</span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Maintenance message ── */}
-      <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h2 className="text-base font-bold text-slate-800 mb-0.5">Onderhoudsbericht</h2>
-        <p className="text-xs text-slate-400 mb-5">
-          Dit bericht zien bezoekers wanneer de site in onderhoudsmodus staat.
-        </p>
-
-        <div className="space-y-4">
+          {/* Message */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Bericht voor bezoekers
@@ -241,6 +187,7 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
             />
           </div>
 
+          {/* End time */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Verwachte eindtijd <span className="text-slate-400 font-normal">(optioneel)</span>
@@ -253,23 +200,35 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
             />
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
+          {/* Actions */}
+          <div className="flex items-center gap-3 flex-wrap pt-1">
             <button
-              onClick={handleSaveMsg}
-              disabled={msgPending}
+              onClick={handleSave}
+              disabled={savePending}
               className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-60 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all"
             >
-              {msgPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              {savePending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               Opslaan
             </button>
-            {msgSaved && !msgPending && (
+            {/* Secondary cancel in the button row — always visible when a schedule exists */}
+            {hasSchedule && (
+              <button
+                onClick={handleCancelSchedule}
+                disabled={savePending}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 transition-all"
+              >
+                <X className="w-3.5 h-3.5" />
+                Annuleer planning
+              </button>
+            )}
+            {saved && !savePending && (
               <span className="inline-flex items-center gap-1.5 text-green-600 text-sm font-semibold">
                 <CheckCircle className="w-4 h-4" />
                 Opgeslagen
               </span>
             )}
-            {msgError && !msgPending && (
-              <span className="text-red-600 text-sm font-medium">{msgError}</span>
+            {saveError && !savePending && (
+              <span className="text-red-600 text-sm font-medium">{saveError}</span>
             )}
           </div>
         </div>
