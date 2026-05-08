@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Bell } from "lucide-react";
+import { Bell, Wrench } from "lucide-react";
 
 async function getScheduledInfo() {
   try {
@@ -21,8 +21,17 @@ async function getScheduledInfo() {
 export default async function ScheduledMaintenanceBanner() {
   const { scheduledAt, maintenanceOn } = await getScheduledInfo();
 
-  // Don't show during active maintenance (visitors are on /onderhoud anyway)
-  if (!scheduledAt || maintenanceOn) return null;
+  if (maintenanceOn) {
+    return (
+      <div className="mt-16 bg-red-50 border-b border-red-200 px-4 py-2.5 text-center text-sm text-red-800">
+        <Wrench className="inline-block w-3.5 h-3.5 mr-1.5 mb-0.5 text-red-600" />
+        <span className="font-semibold">Onderhoudsmodus is actief.</span>{" "}
+        Bezoekers zien de onderhoudspagina.
+      </div>
+    );
+  }
+
+  if (!scheduledAt) return null;
 
   const parsedDate = new Date(scheduledAt);
   if (isNaN(parsedDate.getTime()) || parsedDate <= new Date()) return null;

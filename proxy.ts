@@ -9,6 +9,26 @@ const BYPASS_PATHS = ["/onderhoud", "/api/bypass", "/api/", "/_next/", "/favicon
 /* ── Module-level cache (helps when Edge instance stays warm) ── */
 let _modeCache: { maintenance: boolean; ts: number } | null = null;
 
+function supabaseHeaders() {
+  return {
+    apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+    "Content-Type": "application/json",
+    Prefer: "return=minimal",
+  };
+}
+
+// Writes maintenance_mode=true to the DB so the admin panel reflects active state.
+// Fire-and-forget: called without await so it doesn't block the redirect.
+function activateMaintenanceModeInDB() {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  fetch(`${base}/rest/v1/site_settings?key=eq.maintenance_mode`, {
+    method: "PATCH",
+    headers: supabaseHeaders(),
+    body: JSON.stringify({ value: "true" }),
+  }).catch(() => {});
+}
+
 async function getSiteMode(): Promise<{ maintenance: boolean }> {
   const now = Date.now();
   if (_modeCache && now - _modeCache.ts < 30_000) return _modeCache;
@@ -30,6 +50,11 @@ async function getSiteMode(): Promise<{ maintenance: boolean }> {
     const scheduledActive = scheduledAt
       ? (() => { const d = new Date(scheduledAt); return !isNaN(d.getTime()) && d <= new Date(); })()
       : false;
+
+    // Scheduled time just passed: persist the active state so admin panel updates.
+    if (scheduledActive && !maintenanceOn) {
+      activateMaintenanceModeInDB();
+    }
 
     _modeCache = { maintenance: maintenanceOn || scheduledActive, ts: now };
   } catch {
