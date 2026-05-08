@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_PATHS = ["/dashboard", "/scan", "/account", "/admin"];
 const AUTH_PATHS = ["/login", "/register"];
 // These paths always pass through even during maintenance / dev mode
-const BYPASS_PATHS = ["/onderhoud", "/api/bypass", "/api/", "/_next/", "/favicon.ico"];
+const BYPASS_PATHS = ["/onderhoud", "/api/bypass", "/api/", "/_next/", "/favicon.ico", "/login", "/register"];
 
 /* ── Module-level cache (helps when Edge instance stays warm) ── */
 let _modeCache: { maintenance: boolean; dev: boolean; ts: number } | null = null;
