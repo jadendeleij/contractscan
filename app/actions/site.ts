@@ -59,6 +59,20 @@ export async function toggleDevMode(enabled: boolean) {
   revalidateAll();
 }
 
+export async function savePlannedMaintenance(scheduledAt: string, message: string, endTime: string) {
+  await requireAdmin();
+  const db = createAdminClient();
+  await db.from("site_settings").upsert(
+    [
+      { key: "maintenance_scheduled_at", value: scheduledAt, updated_at: new Date().toISOString() },
+      { key: "maintenance_message", value: message, updated_at: new Date().toISOString() },
+      { key: "maintenance_end", value: endTime, updated_at: new Date().toISOString() },
+    ],
+    { onConflict: "key" }
+  );
+  revalidateAll();
+}
+
 export async function saveScheduledMaintenance(scheduledAt: string) {
   await requireAdmin();
   const db = createAdminClient();
