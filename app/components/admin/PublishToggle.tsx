@@ -6,16 +6,26 @@ import { togglePublished } from "@/app/actions/blog";
 
 export default function PublishToggle({ id, published }: { id: string; published: boolean }) {
   const [open, setOpen] = useState(false);
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0 });
   const [isPending, startTransition] = useTransition();
-  const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (btnRef.current && !btnRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  function handleToggle() {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      // Fixed positioning is viewport-relative, no scroll offset needed
+      setDropPos({ top: r.bottom + 6, left: r.left + r.width / 2 });
+    }
+    setOpen((v) => !v);
+  }
 
   function select(newPublished: boolean) {
     setOpen(false);
@@ -24,9 +34,10 @@ export default function PublishToggle({ id, published }: { id: string; published
   }
 
   return (
-    <div ref={ref} className="relative inline-block">
+    <>
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={btnRef}
+        onClick={handleToggle}
         disabled={isPending}
         className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors disabled:opacity-60 ${
           published
@@ -46,7 +57,16 @@ export default function PublishToggle({ id, published }: { id: string; published
       </button>
 
       {open && (
-        <div className="absolute z-20 top-full mt-1.5 left-1/2 -translate-x-1/2 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden min-w-[140px]">
+        <div
+          style={{
+            position: "fixed",
+            top: dropPos.top,
+            left: dropPos.left,
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+          }}
+          className="bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden min-w-[140px]"
+        >
           <button
             onClick={() => select(true)}
             className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-green-700 hover:bg-green-50 transition-colors"
@@ -66,6 +86,6 @@ export default function PublishToggle({ id, published }: { id: string; published
           </button>
         </div>
       )}
-    </div>
+    </>
   );
 }
