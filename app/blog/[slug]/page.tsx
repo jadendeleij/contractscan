@@ -37,9 +37,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   if (!post) notFound();
 
-  // Split content into paragraphs on double newline
-  const paragraphs = post.content.split(/\n\n+/).filter(Boolean);
-
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
@@ -79,29 +76,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </p>
           )}
 
-          {/* Content — split on double newline → paragraphs */}
-          <div className="prose-custom flex flex-col gap-5">
-            {paragraphs.map((para: string, i: number) => {
-              // Lines starting with "-" become bullet lists
-              if (para.trim().startsWith("- ")) {
-                const items = para.split("\n").filter((l: string) => l.trim().startsWith("- "));
-                return (
-                  <ul key={i} className="list-disc list-outside ml-5 flex flex-col gap-1.5">
-                    {items.map((item: string, j: number) => (
-                      <li key={j} className="text-slate-700 text-base leading-relaxed">
-                        {item.replace(/^-\s*/, "")}
-                      </li>
-                    ))}
-                  </ul>
-                );
-              }
-              return (
-                <p key={i} className="text-slate-700 text-base leading-relaxed">
-                  {para}
-                </p>
-              );
-            })}
-          </div>
+          {/* Content — rendered from rich-text HTML */}
+          <div
+            className="blog-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
 
           {/* CTA */}
           <div className="mt-12 p-6 bg-blue-50 rounded-2xl border border-blue-100">

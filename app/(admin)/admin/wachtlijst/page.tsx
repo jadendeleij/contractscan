@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Bell, Download } from "lucide-react";
+import DeleteWaitlistButton from "@/app/components/admin/DeleteWaitlistButton";
 
 export default async function WachtlijstPage() {
   const db = createAdminClient();
@@ -59,7 +60,8 @@ export default async function WachtlijstPage() {
               <tr>
                 <th className="text-left px-5 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">#</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">E-mailadres</th>
-                <th className="text-right px-5 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">Aangemeld op</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">Aangemeld op</th>
+                <th className="text-right px-5 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">Acties</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -76,10 +78,13 @@ export default async function WachtlijstPage() {
                       <span className="font-medium text-slate-800">{entry.email}</span>
                     </div>
                   </td>
-                  <td className="px-5 py-3.5 text-right text-slate-400 text-xs">
+                  <td className="px-4 py-3.5 text-slate-400 text-xs">
                     {new Date(entry.created_at).toLocaleDateString("nl-NL", {
                       day: "numeric", month: "long", year: "numeric",
                     })}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <DeleteWaitlistButton email={entry.email} />
                   </td>
                 </tr>
               ))}

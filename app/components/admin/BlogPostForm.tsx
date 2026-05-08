@@ -4,6 +4,9 @@ import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, Eye, EyeOff } from "lucide-react";
 import { createPost, updatePost } from "@/app/actions/blog";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("./RichTextEditor"), { ssr: false });
 
 const CATEGORIES = ["Beveiliging", "Privacy", "Juridisch", "Productnieuws"];
 
@@ -36,6 +39,8 @@ export default function BlogPostForm({ post }: { post?: Post }) {
   const [title, setTitle] = useState(post?.title ?? "");
   const [slug, setSlug] = useState(post?.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(isEdit);
+  const [content, setContent] = useState(post?.content ?? "");
+  const [published, setPublished] = useState(post?.published ?? false);
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -45,14 +50,14 @@ export default function BlogPostForm({ post }: { post?: Post }) {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    formData.set("content", content);
+    formData.set("published", published ? "on" : "");
     startTransition(async () => {
       try {
-        if (isEdit) {
-          await updatePost(formData);
-        } else {
-          await createPost(formData);
-        }
+        if (isEdit) await updatePost(formData);
+        else await createPost(formData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Er is iets misgegaan.");
       }
@@ -99,18 +104,16 @@ export default function BlogPostForm({ post }: { post?: Post }) {
         {/* Category */}
         <div>
           <label className={labelCls}>Categorie</label>
-          <select
-            name="category"
-            defaultValue={post?.category ?? "Beveiliging"}
-            className={inputCls}
-          >
+          <select name="category" defaultValue={post?.category ?? "Beveiliging"} className={inputCls}>
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
         </div>
 
         {/* Excerpt */}
         <div className="md:col-span-2">
-          <label className={labelCls}>Samenvatting <span className="text-slate-400 font-normal">(kort, max. 200 tekens)</span></label>
+          <label className={labelCls}>
+            Samenvatting <span className="text-slate-400 font-normal">(max. 200 tekens — zichtbaar op de blogpagina)</span>
+          </label>
           <textarea
             name="excerpt"
             rows={2}
@@ -121,45 +124,41 @@ export default function BlogPostForm({ post }: { post?: Post }) {
           />
         </div>
 
-        {/* Content */}
+        {/* Rich text content */}
         <div className="md:col-span-2">
           <label className={labelCls}>
-            Inhoud <span className="text-slate-400 font-normal">(gebruik lege regels tussen alinea&apos;s)</span>
+            Inhoud <span className="text-slate-400 font-normal">(gebruik de toolbar voor opmaak)</span>
           </label>
-          <textarea
-            name="content"
-            rows={16}
-            required
-            defaultValue={post?.content}
-            placeholder="Schrijf hier de volledige blogpost..."
-            className={`${inputCls} resize-y font-mono text-xs leading-relaxed`}
-          />
+          <RichTextEditor value={content} onChange={setContent} />
         </div>
 
         {/* Published */}
         <div className="md:col-span-2">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="published"
-              defaultChecked={post?.published ?? false}
-              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
-              {post?.published ? <Eye className="w-4 h-4 text-green-600" /> : <EyeOff className="w-4 h-4 text-slate-400" />}
-              Gepubliceerd (zichtbaar op de blog)
+          <button
+            type="button"
+            onClick={() => setPublished((v) => !v)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+              published
+                ? "border-green-200 bg-green-50"
+                : "border-slate-200 bg-slate-50"
+            }`}
+          >
+            {published
+              ? <Eye className="w-4 h-4 text-green-600" />
+              : <EyeOff className="w-4 h-4 text-slate-400" />
+            }
+            <span className={`text-sm font-semibold ${published ? "text-green-800" : "text-slate-600"}`}>
+              {published ? "Gepubliceerd — zichtbaar op de blog" : "Concept — nog niet zichtbaar"}
             </span>
-          </label>
+          </button>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
+        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
-      <div className="flex items-center gap-3 pt-2">
+      <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
         <button
           type="submit"
           disabled={isPending}

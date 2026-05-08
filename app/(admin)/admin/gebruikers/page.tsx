@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Users, Globe, Mail, UserCheck, Clock } from "lucide-react";
+import DeleteUserButton from "@/app/components/admin/DeleteUserButton";
 
 type AuthUser = {
   id: string;
@@ -77,6 +78,7 @@ export default async function GebruikersPage() {
                   <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide hidden sm:table-cell">Provider</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide hidden md:table-cell">Geregistreerd</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide hidden lg:table-cell">Laatste inlog</th>
+                  <th className="text-right px-5 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">Acties</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -107,6 +109,9 @@ export default async function GebruikersPage() {
                         {user.last_sign_in_at
                           ? new Date(user.last_sign_in_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })
                           : "—"}
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <DeleteUserButton userId={user.id} email={user.email ?? user.id} />
                       </td>
                     </tr>
                   );

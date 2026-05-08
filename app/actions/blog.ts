@@ -78,3 +78,24 @@ export async function togglePublished(id: string, published: boolean) {
   revalidatePath("/blog");
   revalidatePath("/admin/blog");
 }
+
+export async function uploadBlogImage(formData: FormData): Promise<string> {
+  await requireAdmin();
+  const file = formData.get("file") as File;
+  if (!file || file.size === 0) throw new Error("Geen bestand geselecteerd.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("Bestand is groter dan 5MB.");
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const bytes = await file.arrayBuffer();
+
+  const db = createAdminClient();
+  const { error } = await db.storage
+    .from("blog-images")
+    .upload(path, bytes, { contentType: file.type, upsert: false });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = db.storage.from("blog-images").getPublicUrl(path);
+  return data.publicUrl;
+}
