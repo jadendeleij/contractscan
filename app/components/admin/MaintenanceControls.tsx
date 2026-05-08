@@ -20,9 +20,12 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
   const [localScheduled, setLocalScheduled] = useState(scheduledAt);
   const [saved, setSaved] = useState(false);
 
-  // Derived state from the saved DB value (not local input)
-  const hasSchedule = !!scheduledAt;
-  const scheduledDate = hasSchedule ? new Date(scheduledAt) : null;
+  // Mirrors what's actually committed to the DB so status banner updates immediately
+  // after save/cancel without waiting for a server re-render.
+  const [committedSchedule, setCommittedSchedule] = useState(scheduledAt);
+
+  const hasSchedule = !!committedSchedule;
+  const scheduledDate = hasSchedule ? new Date(committedSchedule) : null;
   const scheduledValid = scheduledDate && !isNaN(scheduledDate.getTime());
   const scheduledInFuture = scheduledValid && scheduledDate > new Date();
 
@@ -34,6 +37,7 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
   function handleSave() {
     startSaveTransition(async () => {
       await savePlannedMaintenance(localScheduled, localMsg, localEnd);
+      setCommittedSchedule(localScheduled);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     });
@@ -42,6 +46,7 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
   function handleCancelSchedule() {
     startSaveTransition(async () => {
       await saveScheduledMaintenance("");
+      setCommittedSchedule("");
       setLocalScheduled("");
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
