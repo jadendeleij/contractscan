@@ -37,20 +37,24 @@ export async function setSiteSetting(key: string, value: string) {
 export async function toggleMaintenanceMode(enabled: boolean) {
   await requireAdmin();
   const db = createAdminClient();
-  await db.from("site_settings").upsert(
+  // Enabling maintenance mode always disables dev mode (mutually exclusive)
+  const rows = [
     { key: "maintenance_mode", value: String(enabled), updated_at: new Date().toISOString() },
-    { onConflict: "key" }
-  );
+    ...(enabled ? [{ key: "dev_mode", value: "false", updated_at: new Date().toISOString() }] : []),
+  ];
+  await db.from("site_settings").upsert(rows, { onConflict: "key" });
   revalidateAll();
 }
 
 export async function toggleDevMode(enabled: boolean) {
   await requireAdmin();
   const db = createAdminClient();
-  await db.from("site_settings").upsert(
+  // Enabling dev mode always disables maintenance mode (mutually exclusive)
+  const rows = [
     { key: "dev_mode", value: String(enabled), updated_at: new Date().toISOString() },
-    { onConflict: "key" }
-  );
+    ...(enabled ? [{ key: "maintenance_mode", value: "false", updated_at: new Date().toISOString() }] : []),
+  ];
+  await db.from("site_settings").upsert(rows, { onConflict: "key" });
   revalidateAll();
 }
 

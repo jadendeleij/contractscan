@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Wrench, Code2, Clock, ArrowRight } from "lucide-react";
@@ -20,13 +22,15 @@ export default async function OnderhoudPage({
   const { mode } = await searchParams;
   const settings = await getSettings();
   const isDev = mode === "dev" || (settings.dev_mode === "true" && settings.maintenance_mode !== "true");
+
   const message =
     settings.maintenance_message ||
     (isDev
       ? "We zijn druk bezig met nieuwe functionaliteit. Kom snel terug!"
       : "We zijn even bezig met onderhoud. We zijn zo terug.");
-  const endTime = settings.maintenance_end;
-  const parsedEnd = endTime ? new Date(endTime) : null;
+
+  const endTimeRaw = settings.maintenance_end;
+  const parsedEnd = endTimeRaw ? new Date(endTimeRaw) : null;
   const validEnd = parsedEnd && !isNaN(parsedEnd.getTime());
 
   return (
@@ -65,8 +69,10 @@ export default async function OnderhoudPage({
       {validEnd && parsedEnd && (
         <div className="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-300 text-sm px-4 py-2 rounded-full mb-8">
           <Clock className="w-4 h-4 text-blue-400" />
-          Verwacht terug om {parsedEnd.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
-          {" "}op {parsedEnd.toLocaleDateString("nl-NL", { day: "numeric", month: "long" })}
+          Onderhoud eindigt verwacht:{" "}
+          {parsedEnd.toLocaleDateString("nl-NL", { day: "numeric", month: "long" })}
+          {" "}om{" "}
+          {parsedEnd.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
         </div>
       )}
 
