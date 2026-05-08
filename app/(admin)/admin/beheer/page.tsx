@@ -4,18 +4,49 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Wrench, ShieldCheck, CheckCircle, AlertTriangle, Clock, Globe, Eye, Calendar } from "lucide-react";
 import MaintenanceControls from "@/app/components/admin/MaintenanceControls";
 
+function amsOffsetMs(utcDate: Date): number {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  });
+  const p = Object.fromEntries(fmt.formatToParts(utcDate).map(({ type, value }) => [type, Number(value)]));
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - utcDate.getTime();
+}
+
+function parseStoredDate(stored: string): Date | null {
+  if (!stored) return null;
+  if (stored.includes("Z") || /[+-]\d{2}:?\d{2}$/.test(stored)) {
+    const d = new Date(stored); return isNaN(d.getTime()) ? null : d;
+  }
+  const approx = new Date(stored + "Z");
+  if (isNaN(approx.getTime())) return null;
+  return new Date(approx.getTime() - amsOffsetMs(approx));
+}
+
 async function getSettings(): Promise<Record<string, string>> {
   try {
     const db = createAdminClient();
     const { data } = await db.from("site_settings").select("key, value");
     const settings = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
 
-    // Auto-activate: if the scheduled time has passed and maintenance_mode is still
-    // false, flip it now so the page renders the correct state immediately.
+    // Migrate legacy format (no tz suffix) → UTC ISO so proxy comparison is correct.
+    const raw = settings.maintenance_scheduled_at;
+    if (raw && !raw.includes("Z") && !/[+-]\d{2}:?\d{2}$/.test(raw)) {
+      const parsed = parseStoredDate(raw);
+      if (parsed) {
+        const utcIso = parsed.toISOString();
+        await db.from("site_settings").upsert({ key: "maintenance_scheduled_at", value: utcIso }, { onConflict: "key" });
+        settings.maintenance_scheduled_at = utcIso;
+      }
+    }
+
+    // Auto-activate: if the scheduled time has passed, flip maintenance_mode now
+    // so the page renders the correct state without needing the proxy to fire first.
     const scheduledAt = settings.maintenance_scheduled_at;
     if (scheduledAt && settings.maintenance_mode !== "true") {
-      const d = new Date(scheduledAt);
-      if (!isNaN(d.getTime()) && d <= new Date()) {
+      const d = parseStoredDate(scheduledAt);
+      if (d && d <= new Date()) {
         await db.from("site_settings").upsert(
           [{ key: "maintenance_mode", value: "true" }, { key: "maintenance_scheduled_at", value: "" }],
           { onConflict: "key" }
@@ -40,9 +71,8 @@ export default async function BeheerPage() {
   const bypassSecret = process.env.BYPASS_SECRET;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://contractscan-beta.vercel.app";
 
-  const scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
-  const scheduledValid = scheduledDate && !isNaN(scheduledDate.getTime());
-  const scheduledInFuture = scheduledValid && scheduledDate > new Date();
+  const scheduledDate = parseStoredDate(scheduledAt);
+  const scheduledInFuture = !!scheduledDate && scheduledDate > new Date();
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">

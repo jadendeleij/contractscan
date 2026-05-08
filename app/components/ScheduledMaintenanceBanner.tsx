@@ -1,6 +1,26 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Bell, Wrench } from "lucide-react";
 
+function amsOffsetMs(utcDate: Date): number {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  });
+  const p = Object.fromEntries(fmt.formatToParts(utcDate).map(({ type, value }) => [type, Number(value)]));
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - utcDate.getTime();
+}
+
+function parseStoredDate(stored: string): Date | null {
+  if (!stored) return null;
+  if (stored.includes("Z") || /[+-]\d{2}:?\d{2}$/.test(stored)) {
+    const d = new Date(stored); return isNaN(d.getTime()) ? null : d;
+  }
+  const approx = new Date(stored + "Z");
+  if (isNaN(approx.getTime())) return null;
+  return new Date(approx.getTime() - amsOffsetMs(approx));
+}
+
 async function getScheduledInfo() {
   try {
     const db = createAdminClient();
@@ -33,8 +53,8 @@ export default async function ScheduledMaintenanceBanner() {
 
   if (!scheduledAt) return null;
 
-  const parsedDate = new Date(scheduledAt);
-  if (isNaN(parsedDate.getTime()) || parsedDate <= new Date()) return null;
+  const parsedDate = parseStoredDate(scheduledAt);
+  if (!parsedDate || parsedDate <= new Date()) return null;
 
   return (
     <div className="mt-16 bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center text-sm text-amber-800">

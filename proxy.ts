@@ -9,13 +9,30 @@ const BYPASS_PATHS = ["/onderhoud", "/api/bypass", "/api/", "/_next/", "/favicon
 /* ── Module-level cache (helps when Edge instance stays warm) ── */
 let _modeCache: { maintenance: boolean; ts: number } | null = null;
 
-function supabaseHeaders() {
-  return {
-    apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
-    "Content-Type": "application/json",
-    Prefer: "return=minimal",
-  };
+// Returns Amsterdam's UTC offset in ms for a given UTC Date (handles DST).
+function amsOffsetMs(utcDate: Date): number {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  });
+  const p = Object.fromEntries(fmt.formatToParts(utcDate).map(({ type, value }) => [type, Number(value)]));
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - utcDate.getTime();
+}
+
+// Parses a stored date string — handles both UTC ISO ("...Z") and legacy
+// Amsterdam-local format ("2026-05-09T10:00" without timezone suffix).
+function parseStoredDate(stored: string): Date | null {
+  if (!stored) return null;
+  if (stored.includes("Z") || /[+-]\d{2}:?\d{2}$/.test(stored)) {
+    const d = new Date(stored);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // Old format: no tz suffix → was entered as Amsterdam local time.
+  // Parse as UTC first (approximation), then subtract the Amsterdam offset.
+  const approx = new Date(stored + "Z");
+  if (isNaN(approx.getTime())) return null;
+  return new Date(approx.getTime() - amsOffsetMs(approx));
 }
 
 async function getSiteMode(): Promise<{ maintenance: boolean }> {
@@ -37,10 +54,9 @@ async function getSiteMode(): Promise<{ maintenance: boolean }> {
     const rows: { key: string; value: string }[] = await res.json();
 
     const maintenanceOn = rows.find((r) => r.key === "maintenance_mode")?.value === "true";
-    const scheduledAt = rows.find((r) => r.key === "maintenance_scheduled_at")?.value;
-    const scheduledActive = scheduledAt
-      ? (() => { const d = new Date(scheduledAt); return !isNaN(d.getTime()) && d <= new Date(); })()
-      : false;
+    const scheduledAt = rows.find((r) => r.key === "maintenance_scheduled_at")?.value ?? "";
+    const scheduled = parseStoredDate(scheduledAt);
+    const scheduledActive = !!scheduled && scheduled <= new Date();
 
     // Scheduled time just passed: synchronously persist so the page that renders
     // right after this call already sees maintenance_mode=true in the DB.

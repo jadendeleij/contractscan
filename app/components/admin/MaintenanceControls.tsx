@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Wrench, Globe, Loader2, Save, CheckCircle, X } from "lucide-react";
 import { toggleMaintenanceMode, savePlannedMaintenance, saveScheduledMaintenance } from "@/app/actions/site";
 
@@ -30,6 +31,7 @@ function toLocal(stored: string): string {
 }
 
 export default function MaintenanceControls({ maintenanceMode, message, endTime, scheduledAt }: Props) {
+  const router = useRouter();
   const [modePending, startModeTransition] = useTransition();
   const [savePending, startSaveTransition] = useTransition();
 
@@ -42,6 +44,22 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
   // Mirrors what's actually committed to the DB so status banner updates immediately
   // after save/cancel without waiting for a server re-render.
   const [committedSchedule, setCommittedSchedule] = useState(scheduledAt);
+
+  // When the scheduled time arrives, clear local state and refresh server data
+  // so the mode buttons and status cards update without a manual page reload.
+  useEffect(() => {
+    if (!committedSchedule) return;
+    const d = new Date(committedSchedule);
+    if (isNaN(d.getTime())) return;
+    const msUntil = d.getTime() - Date.now();
+    if (msUntil <= 0) return;
+    const id = setTimeout(() => {
+      setCommittedSchedule("");
+      setLocalScheduled("");
+      router.refresh();
+    }, msUntil + 1500);
+    return () => clearTimeout(id);
+  }, [committedSchedule, router]);
 
   const hasSchedule = !!committedSchedule;
   const scheduledDate = hasSchedule ? new Date(committedSchedule) : null;
