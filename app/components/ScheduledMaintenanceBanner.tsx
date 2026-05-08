@@ -28,7 +28,7 @@ export default async function ScheduledMaintenanceBanner() {
   if (isNaN(parsedDate.getTime()) || parsedDate <= new Date()) return null;
 
   return (
-    <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center text-sm text-amber-800">
+    <div className="mt-16 bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center text-sm text-amber-800">
       <Bell className="inline-block w-3.5 h-3.5 mr-1.5 mb-0.5 text-amber-600" />
       <span className="font-semibold">Gepland onderhoud:</span>{" "}
       {parsedDate.toLocaleDateString("nl-NL", { day: "numeric", month: "long" })} om{" "}

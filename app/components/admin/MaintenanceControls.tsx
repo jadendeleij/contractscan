@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Wrench, Globe, Loader2, Save, CheckCircle, X } from "lucide-react";
 import { toggleMaintenanceMode, savePlannedMaintenance, saveScheduledMaintenance } from "@/app/actions/site";
 
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export default function MaintenanceControls({ maintenanceMode, message, endTime, scheduledAt }: Props) {
+  const router = useRouter();
   const [modePending, startModeTransition] = useTransition();
   const [savePending, startSaveTransition] = useTransition();
 
@@ -40,6 +42,7 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
       setCommittedSchedule(localScheduled);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      router.refresh();
     });
   }
 
@@ -50,6 +53,7 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
       setLocalScheduled("");
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      router.refresh();
     });
   }
 

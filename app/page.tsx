@@ -197,10 +197,10 @@ function CardFeatureItem({ label, isKey, dark }: { label: string; isKey?: boolea
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
+      <Navbar />
       <Suspense fallback={null}>
         <ScheduledMaintenanceBanner />
       </Suspense>
-      <Navbar />
 
       {/* ── HERO ──────────────────────────────────────── */}
       <section className="pt-32 pb-12 sm:pb-28 px-6 text-center bg-gradient-to-b from-blue-50 via-white to-white">
