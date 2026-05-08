@@ -6,8 +6,33 @@ const AUTH_PATHS = ["/login", "/register"];
 // These paths always pass through even during maintenance
 const BYPASS_PATHS = ["/onderhoud", "/api/bypass", "/api/", "/_next/", "/favicon.ico", "/login", "/register"];
 
-/* ── Module-level cache (helps when Edge instance stays warm) ── */
+/* ── Module-level caches ── */
 let _modeCache: { maintenance: boolean; ts: number } | null = null;
+const _adminCache = new Map<string, { isAdmin: boolean; ts: number }>();
+
+async function checkIsAdmin(userId: string): Promise<boolean> {
+  const cached = _adminCache.get(userId);
+  if (cached && Date.now() - cached.ts < 300_000) return cached.isAdmin; // 5 min TTL
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=is_admin`,
+      {
+        headers: {
+          apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+        },
+        signal: AbortSignal.timeout(1000),
+      }
+    );
+    if (!res.ok) return cached?.isAdmin ?? false;
+    const [row] = await res.json();
+    const isAdmin = row?.is_admin === true;
+    _adminCache.set(userId, { isAdmin, ts: Date.now() });
+    return isAdmin;
+  } catch {
+    return cached?.isAdmin ?? false; // use stale cache on error, deny if no cache
+  }
+}
 
 // Returns Amsterdam's UTC offset in ms for a given UTC Date (handles DST).
 function amsOffsetMs(utcDate: Date): number {
@@ -113,7 +138,8 @@ export async function proxy(request: NextRequest) {
     // activation is synchronously persisted to the DB before the page renders.
     const mode = await getSiteMode();
     const bypassCookie = request.cookies.get("_bypass");
-    const canPass = !!user || !!bypassCookie;
+    const isAdminUser = user ? await checkIsAdmin(user.id) : false;
+    const canPass = isAdminUser || !!bypassCookie;
 
     if (mode.maintenance && !canPass && !isAdminPath) {
       const url = request.nextUrl.clone();
