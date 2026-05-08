@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ContractScan AI — Scan je contract in 60 seconden",
+  title: "ContractScan AI | Scan je contract in 60 seconden",
   description: "ContractScan AI analyseert elk contract, markeert risico's en legt alles uit in gewone taal. Probeer het gratis.",
 };
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blijf op de hoogte — ContractScan AI",
+  title: "Blijf op de hoogte | ContractScan AI",
   description: "Meld je aan en ontvang een bericht zodra ContractScan AI beschikbaar is.",
 };
 
@@ -37,7 +37,7 @@ export default function MailingListPage() {
         </h1>
         <p className="text-slate-500 text-sm leading-relaxed mb-8">
           ContractScan AI is in ontwikkeling. Laat je e-mailadres achter en we sturen
-          je een bericht zodra je kunt beginnen — als een van de eersten.
+          je een bericht zodra je kunt beginnen, als een van de eersten.
         </p>
 
         <WaitlistForm />

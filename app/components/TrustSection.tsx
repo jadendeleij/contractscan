@@ -80,7 +80,7 @@ const pillars = [
         Elke verbinding is beveiligd met{" "}
         <TechTerm popup={{
           title: "TLS 1.3",
-          explanation: "TLS (Transport Layer Security) versleutelt de verbinding tussen uw browser en onze servers. Versie 1.3 is de nieuwste standaard — kwetsbaarheden uit oudere versies zijn volledig verwijderd.",
+          explanation: "TLS (Transport Layer Security) versleutelt de verbinding tussen uw browser en onze servers. Versie 1.3 is de nieuwste standaard; kwetsbaarheden uit oudere versies zijn volledig verwijderd.",
           blogHref: "/blog/wat-is-tls-encryptie",
         }}>
           TLS 1.3
@@ -98,12 +98,12 @@ const pillars = [
         Tijdens de analyse slaan wij data tijdelijk op met{" "}
         <TechTerm popup={{
           title: "AES-256-encryptie",
-          explanation: "AES-256 (Advanced Encryption Standard) is de wereldstandaard voor dataveiligheid. Met een sleutellengte van 256 bits is het wiskundig onmogelijk om deze encryptie te kraken — ook voor de krachtigste supercomputers.",
+          explanation: "AES-256 (Advanced Encryption Standard) is de wereldstandaard voor dataveiligheid. Met een sleutellengte van 256 bits is het wiskundig onmogelijk om deze encryptie te kraken, zelfs voor de krachtigste supercomputers.",
           blogHref: "/blog/wat-is-aes-256-encryptie",
         }}>
           AES-256-encryptie
         </TechTerm>
-        {" "}— dezelfde standaard die banken en overheden wereldwijd gebruiken voor
+        , dezelfde standaard die banken en overheden wereldwijd gebruiken voor
         hun meest gevoelige bestanden.
       </>
     ),
@@ -117,7 +117,7 @@ const pillars = [
         Wij hanteren een strict{" "}
         <TechTerm popup={{
           title: "Zero-retention beleid",
-          explanation: "Zero-retention betekent dat wij uw document nooit langer bewaren dan strikt noodzakelijk. Zodra de analyse klaar is, wordt het bestand definitief verwijderd — niet gearchiveerd, niet gebackupt, geen logging van inhoud.",
+          explanation: "Zero-retention betekent dat wij uw document nooit langer bewaren dan strikt noodzakelijk. Zodra de analyse klaar is, wordt het bestand definitief verwijderd: niet gearchiveerd, niet gebackupt, geen logging van inhoud.",
           blogHref: "/blog/zero-retention-beleid",
         }}>
           zero-retention beleid
@@ -131,7 +131,7 @@ const pillars = [
     title: "EU-servers & AVG-compliant",
     body: (
       <>
-        Al onze infrastructuur staat in Nederland en Duitsland — volledig binnen de{" "}
+        Al onze infrastructuur staat in Nederland en Duitsland, volledig binnen de{" "}
         <TechTerm popup={{
           title: "AVG (GDPR)",
           explanation: "De Algemene Verordening Gegevensbescherming (AVG) is de Europese privacywet die regelt hoe bedrijven persoonsgegevens mogen verwerken. Naleving is wettelijk verplicht voor alle bedrijven die data van EU-burgers verwerken.",
@@ -169,7 +169,7 @@ export default function TrustSection() {
           </h2>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
             Wij begrijpen dat contracten gevoelige informatie bevatten. Daarom is
-            veiligheid geen bijzaak — het is de fundering van alles wat wij bouwen.
+            veiligheid geen bijzaak: het is de fundering van alles wat wij bouwen.
           </p>
         </div>
 

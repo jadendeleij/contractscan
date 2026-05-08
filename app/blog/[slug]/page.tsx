@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const supabase = await createClient();
   const { data } = await supabase.from("blog_posts").select("title, excerpt, meta_description").eq("slug", slug).eq("published", true).single();
   return {
-    title: data ? `${data.title} — ContractScan AI` : "Blog",
+    title: data ? `${data.title} | ContractScan AI` : "Blog",
     description: data?.meta_description || data?.excerpt || "",
   };
 }
@@ -100,7 +100,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {/* CTA */}
           <div className="mt-12 p-6 bg-blue-50 rounded-2xl border border-blue-100">
             <p className="text-blue-900 font-semibold mb-1">Klaar om uw contract te scannen?</p>
-            <p className="text-blue-700 text-sm mb-4">Probeer ContractScan AI gratis — geen credit card nodig.</p>
+            <p className="text-blue-700 text-sm mb-4">Probeer ContractScan AI gratis, geen credit card nodig.</p>
             <Link
               href="/register"
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all active:scale-95"

@@ -1,21 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Minus, ShieldCheck, ExternalLink } from "lucide-react";
-
-function TechLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 text-blue-600 hover:text-blue-700 underline decoration-dotted underline-offset-2 font-medium transition-colors group/tl"
-    >
-      {children}
-      <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-50 group-hover/tl:opacity-100 transition-opacity" />
-    </a>
-  );
-}
+import { Plus, Minus, ShieldCheck } from "lucide-react";
 
 type FAQ = { question: string; answer: React.ReactNode; tag?: "privacy" | "security" | "product" };
 
@@ -28,15 +14,8 @@ const faqs: FAQ[] = [
       <>
         Nee, nooit. Zodra de analyse is voltooid, wordt uw document{" "}
         <strong>automatisch en permanent verwijderd</strong> van onze servers. Wij bewaren geen
-        kopieën, geen back-ups en loggen de inhoud van uw documenten niet. Dit is vastgelegd in ons{" "}
-        <TechLink href="https://gdpr.eu/article-5-how-to-process-personal-data/">
-          zero-retention beleid
-        </TechLink>
-        , conform{" "}
-        <TechLink href="https://www.autoriteitpersoonsgegevens.nl/themas/basis-avg">
-          AVG-artikel 5 (opslagbeperking)
-        </TechLink>
-        .
+        kopieën, geen back-ups en loggen de inhoud van uw documenten niet. Dit is vastgelegd in ons
+        zero-retention beleid, conform AVG-artikel 5 (opslagbeperking).
       </>
     ),
   },
@@ -46,7 +25,7 @@ const faqs: FAQ[] = [
     answer: (
       <>
         Absoluut niet. Uw documenten worden <strong>nooit</strong> gebruikt voor training,
-        fine-tuning of verbetering van onze modellen — ook niet in geanonimiseerde vorm. Wat u
+        fine-tuning of verbetering van onze modellen, ook niet in geanonimiseerde vorm. Wat u
         uploadt, blijft van u. Dit is een harde technische én contractuele beperking, geen
         marketingbelofte.
       </>
@@ -58,7 +37,7 @@ const faqs: FAQ[] = [
     answer: (
       <>
         Niemand bij ContractScan AI leest uw documenten mee. De verwerking verloopt volledig
-        geautomatiseerd door onze AI. Medewerkers hebben geen toegang tot documentinhoud — dit
+        geautomatiseerd door onze AI. Medewerkers hebben geen toegang tot documentinhoud; dit
         is architectureel afgedwongen, niet alleen beleidsmatig.
       </>
     ),
@@ -70,11 +49,8 @@ const faqs: FAQ[] = [
       <>
         Ja. U kunt op elk moment via de instellingenpagina uw account opheffen. Alle
         bijbehorende metadata wordt binnen <strong>30 dagen</strong> permanent gewist, conform
-        uw recht op vergetelheid onder de{" "}
-        <TechLink href="https://gdpr.eu/right-to-be-forgotten/">
-          AVG artikel 17
-        </TechLink>
-        . U ontvangt een bevestiging per e-mail zodra de verwijdering is voltooid.
+        uw recht op vergetelheid onder AVG artikel 17. U ontvangt een bevestiging per e-mail
+        zodra de verwijdering is voltooid.
       </>
     ),
   },
@@ -85,17 +61,10 @@ const faqs: FAQ[] = [
     question: "Welke versleuteling gebruiken jullie?",
     answer: (
       <>
-        Alle dataverbindingen zijn beveiligd met{" "}
-        <TechLink href="https://en.wikipedia.org/wiki/Transport_Layer_Security">
-          TLS 1.3
-        </TechLink>
-        , het modernste transportprotocol beschikbaar. Tijdelijke opslag tijdens de analyse
-        is versleuteld met{" "}
-        <TechLink href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">
-          AES-256
-        </TechLink>{" "}
-        — hetzelfde versleutelingsniveau dat internationale banken en overheidsinstellingen
-        gebruiken voor hun meest gevoelige data.
+        Alle dataverbindingen zijn beveiligd met <strong>TLS 1.3</strong>, het modernste
+        transportprotocol beschikbaar. Tijdelijke opslag tijdens de analyse is versleuteld met{" "}
+        <strong>AES-256</strong>, hetzelfde versleutelingsniveau dat internationale banken en
+        overheidsinstellingen gebruiken voor hun meest gevoelige data.
       </>
     ),
   },
@@ -105,12 +74,8 @@ const faqs: FAQ[] = [
     answer: (
       <>
         Al onze infrastructuur staat in <strong>Nederland en Duitsland</strong>. Uw data
-        verlaat de Europese Unie nooit. Wij zijn volledig compliant met de{" "}
-        <TechLink href="https://gdpr.eu/">GDPR</TechLink> en de Nederlandse{" "}
-        <TechLink href="https://www.autoriteitpersoonsgegevens.nl/themas/basis-avg">
-          AVG
-        </TechLink>
-        . Er worden geen sub-processors buiten de EU ingezet.
+        verlaat de Europese Unie nooit. Wij zijn volledig compliant met de GDPR en de
+        Nederlandse AVG. Er worden geen sub-processors buiten de EU ingezet.
       </>
     ),
   },
@@ -119,13 +84,10 @@ const faqs: FAQ[] = [
     question: "Is het veilig om een vertrouwelijk of juridisch bindend contract te uploaden?",
     answer: (
       <>
-        Ja. ContractScan AI is specifiek gebouwd voor gevoelige documenten. Onze{" "}
-        <TechLink href="https://en.wikipedia.org/wiki/End-to-end_encryption">
-          end-to-end versleuteling
-        </TechLink>{" "}
-        zorgt ervoor dat zelfs onze eigen medewerkers geen inzage hebben in uw documentinhoud.
-        U kunt gerust NDA&apos;s, arbeidscontracten, leveranciersovereenkomsten en andere
-        vertrouwelijke stukken uploaden.
+        Ja. ContractScan AI is specifiek gebouwd voor gevoelige documenten. End-to-end
+        versleuteling zorgt ervoor dat zelfs onze eigen medewerkers geen inzage hebben in uw
+        documentinhoud. U kunt gerust NDA&apos;s, arbeidscontracten, leveranciersovereenkomsten
+        en andere vertrouwelijke stukken uploaden.
       </>
     ),
   },
@@ -137,9 +99,22 @@ const faqs: FAQ[] = [
     answer: (
       <>
         Wij ondersteunen <strong>PDF</strong>, <strong>Word (.docx)</strong> en{" "}
-        <strong>platte tekst</strong>. De maximale bestandsgrootte is 50 MB. Op het Solo- en
-        Pro-abonnement worden documenten tot respectievelijk 100 en onbeperkt pagina&apos;s
-        verwerkt.
+        <strong>platte tekst</strong>. De maximale bestandsgrootte is 50 MB. Het gratis
+        abonnement verwerkt documenten tot <strong>3 pagina&apos;s</strong>; Solo tot 100
+        pagina&apos;s en Pro zonder limiet.
+      </>
+    ),
+  },
+  {
+    tag: "product",
+    question: "Wat wordt er precies opgeslagen na de scan?",
+    answer: (
+      <>
+        Het originele contract wordt <strong>nooit</strong> opgeslagen. Wat wij bewaren is
+        uitsluitend het <strong>AI-rapport</strong>: de risicoscore, clausule-uitleg en
+        aanbevelingen. Bij het Solo-abonnement blijft dit rapport{" "}
+        <strong>12 maanden</strong> beschikbaar; bij Pro <strong>onbeperkt</strong>. Op het
+        gratis abonnement wordt geen rapportgeschiedenis bijgehouden.
       </>
     ),
   },
@@ -193,7 +168,7 @@ export default function FAQSection() {
             Veelgestelde vragen
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Alles wat u wilt weten<br />over privacy & veiligheid
+            Alles wat u wilt weten<br />over privacy &amp; veiligheid
           </h2>
           <p className="text-slate-500 text-lg">
             Transparantie is onze standaard. Geen vaagtaal, geen kleine lettertjes.
@@ -220,9 +195,7 @@ export default function FAQSection() {
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     {faq.tag && (
-                      <span
-                        className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5 ${tagColors[faq.tag]}`}
-                      >
+                      <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5 ${tagColors[faq.tag]}`}>
                         {tagLabels[faq.tag]}
                       </span>
                     )}
@@ -231,14 +204,11 @@ export default function FAQSection() {
                     </span>
                   </div>
                   <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors mt-0.5 ${isOpen ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600"}`}>
-                    {isOpen
-                      ? <Minus className="w-3.5 h-3.5" />
-                      : <Plus className="w-3.5 h-3.5" />
-                    }
+                    {isOpen ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                   </span>
                 </button>
 
-                {/* Accordion body — grid trick for smooth animation */}
+                {/* Accordion body */}
                 <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                   <div className="overflow-hidden">
                     <p className="px-6 pb-6 text-slate-600 text-sm leading-relaxed">

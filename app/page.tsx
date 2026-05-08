@@ -85,12 +85,12 @@ type PlanFeature = {
 };
 
 const planFeatures: PlanFeature[] = [
-  { label: "Scans per maand",                   key: true,  free: "3×",         solo: "Onbeperkt",  pro: "Onbeperkt"   },
-  { label: "Max. pagina's per document",                     free: "10 pag.",    solo: "100 pag.",   pro: "Onbeperkt"   },
+  { label: "Scans per maand",                   key: true,  free: "1×",         solo: "Onbeperkt",  pro: "Onbeperkt"   },
+  { label: "Max. pagina's per document",                     free: "3 pag.",     solo: "100 pag.",   pro: "Onbeperkt"   },
   { label: "Risicoscore & samenvatting",                     free: true,         solo: true,         pro: true          },
   { label: "Volledige clausule-uitleg",          key: true,  free: false,        solo: true,         pro: true          },
   { label: "PDF-rapport downloaden",             key: true,  free: false,        solo: true,         pro: true          },
-  { label: "Contractgeschiedenis",               key: true,  free: false,        solo: "12 maanden", pro: "Onbeperkt"   },
+  { label: "Opgeslagen rapporten",               key: true,  free: false,        solo: "12 maanden", pro: "Onbeperkt"   },
   { label: "Directe verwerking (geen wachtrij)", key: true,  free: false,        solo: true,         pro: true          },
   { label: "Teamleden",                          key: true,  free: false,        solo: false,        pro: "Tot 5 users" },
   { label: "API-koppeling",                      key: true,  free: false,        solo: false,        pro: true          },
@@ -126,9 +126,9 @@ const plans: Plan[] = [
     badge: null,
     badgeColor: "",
     features: [
-      { label: "3 scans per maand" },
+      { label: "1 scan per maand" },
       { label: "Risicoscore & samenvatting" },
-      { label: "Max. 10 pagina's per document" },
+      { label: "Max. 3 pagina's per document" },
     ],
   },
   {
@@ -137,7 +137,7 @@ const plans: Plan[] = [
     price: 29,
     description: "Voor ZZP'ers & freelancers",
     valueProp: "Bespaar gemiddeld 3 uur per contract",
-    cta: "Kies Solo — start direct",
+    cta: "Kies Solo, start direct",
     highlight: true,
     badge: "Meest gekozen",
     badgeColor: "bg-amber-400 text-amber-900",
@@ -145,7 +145,7 @@ const plans: Plan[] = [
       { label: "Onbeperkt scannen", key: true },
       { label: "Volledige clausule-uitleg", key: true },
       { label: "PDF-rapport downloaden", key: true },
-      { label: "12 maanden contractgeschiedenis" },
+      { label: "12 maanden rapportgeschiedenis" },
       { label: "Directe verwerking (geen wachtrij)" },
     ],
   },
@@ -210,7 +210,7 @@ export default function Home() {
           </h1>
 
           <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-            ContractScan AI leest elk contract voor je uit, markeert verborgen risico&apos;s en legt alles uit in gewone taal — zodat jij met vertrouwen tekent.
+            ContractScan AI leest elk contract voor je uit, markeert verborgen risico&apos;s en legt alles uit in gewone taal. Zodat jij met vertrouwen tekent.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
