@@ -31,6 +31,7 @@ export async function createPost(formData: FormData) {
     excerpt:   formData.get("excerpt")   as string,
     content:   formData.get("content")   as string,
     category:  formData.get("category")  as string,
+    author:    (formData.get("author") as string) || "Redactie",
     published: formData.get("published") === "on",
   });
 
@@ -52,6 +53,7 @@ export async function updatePost(formData: FormData) {
     excerpt:    formData.get("excerpt")   as string,
     content:    formData.get("content")   as string,
     category:   formData.get("category")  as string,
+    author:     (formData.get("author") as string) || "Redactie",
     published:  formData.get("published") === "on",
     updated_at: new Date().toISOString(),
   }).eq("id", id);

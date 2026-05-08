@@ -18,6 +18,7 @@ type Post = {
   content: string;
   category: string;
   published: boolean;
+  author: string;
 };
 
 function toSlug(title: string) {
@@ -41,6 +42,7 @@ export default function BlogPostForm({ post }: { post?: Post }) {
   const [slugEdited, setSlugEdited] = useState(isEdit);
   const [content, setContent] = useState(post?.content ?? "");
   const [published, setPublished] = useState(post?.published ?? false);
+  const [author] = useState(post?.author ?? "Redactie");
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -54,11 +56,14 @@ export default function BlogPostForm({ post }: { post?: Post }) {
     const formData = new FormData(form);
     formData.set("content", content);
     formData.set("published", published ? "on" : "");
+    formData.set("author", author);
     startTransition(async () => {
       try {
         if (isEdit) await updatePost(formData);
         else await createPost(formData);
       } catch (err) {
+        // Re-throw Next.js redirect so navigation completes correctly
+        if ((err as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw err;
         setError(err instanceof Error ? err.message : "Er is iets misgegaan.");
       }
     });
@@ -99,6 +104,17 @@ export default function BlogPostForm({ post }: { post?: Post }) {
               className={inputCls}
             />
           </div>
+        </div>
+
+        {/* Author */}
+        <div>
+          <label className={labelCls}>Auteur</label>
+          <input
+            name="author"
+            defaultValue={author}
+            placeholder="Redactie"
+            className={inputCls}
+          />
         </div>
 
         {/* Category */}

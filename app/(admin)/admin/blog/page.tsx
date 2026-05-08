@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Plus, Pencil, Eye, EyeOff, ExternalLink } from "lucide-react";
-import { togglePublished } from "@/app/actions/blog";
+import { Plus, Pencil, ExternalLink } from "lucide-react";
 import DeletePostButton from "@/app/components/admin/DeletePostButton";
+import PublishToggle from "@/app/components/admin/PublishToggle";
 
 export default async function AdminBlogPage() {
   const db = createAdminClient();
@@ -81,21 +81,7 @@ export default async function AdminBlogPage() {
                       {new Date(post.updated_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-4 py-4 text-center">
-                      <form action={togglePublished.bind(null, post.id, !post.published)}>
-                        <button
-                          type="submit"
-                          className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
-                            post.published
-                              ? "bg-green-50 text-green-700 hover:bg-green-100"
-                              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                          }`}
-                        >
-                          {post.published
-                            ? <><Eye className="w-3 h-3" /> Live</>
-                            : <><EyeOff className="w-3 h-3" /> Concept</>
-                          }
-                        </button>
-                      </form>
+                      <PublishToggle id={post.id} published={post.published} />
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { ArrowLeft, Clock, Tag } from "lucide-react";
+import { ArrowLeft, Clock, Tag, UserRound } from "lucide-react";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import type { Metadata } from "next";
@@ -59,6 +59,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               {post.category}
             </span>
             <span className="text-xs text-slate-400 flex items-center gap-1">
+              <UserRound className="w-3 h-3" />
+              {post.author ?? "Redactie"}
+            </span>
+            <span className="text-xs text-slate-400 flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {new Date(post.created_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
             </span>
@@ -71,7 +75,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           {/* Excerpt / lead */}
           {post.excerpt && (
-            <p className="text-lg text-slate-500 leading-relaxed mb-8 pb-8 border-b border-slate-100">
+            <p className="text-lg text-slate-600 leading-relaxed mb-8 pb-8 border-b-2 border-slate-200">
               {post.excerpt}
             </p>
           )}
