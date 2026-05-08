@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Wrench, ShieldCheck, CheckCircle, AlertTriangle, Clock, Globe, Eye, Calendar } from "lucide-react";
 import MaintenanceControls from "@/app/components/admin/MaintenanceControls";
@@ -87,6 +89,22 @@ export default async function BeheerPage() {
         endTime={endTime}
         scheduledAt={scheduledAt}
       />
+
+      {/* DB debug — shows what's actually stored right now */}
+      <section className="bg-slate-50 rounded-2xl border border-slate-200 p-5">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">DB-waarden (live)</p>
+        <div className="space-y-1 font-mono text-xs text-slate-700">
+          {Object.entries(settings).map(([k, v]) => (
+            <div key={k} className="flex gap-2">
+              <span className="text-slate-400 shrink-0">{k}:</span>
+              <span className="break-all">{v || <span className="text-slate-300">(leeg)</span>}</span>
+            </div>
+          ))}
+          {Object.keys(settings).length === 0 && (
+            <p className="text-red-500">⚠ site_settings tabel is leeg of niet bereikbaar</p>
+          )}
+        </div>
+      </section>
 
       {/* Developer info */}
       <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
