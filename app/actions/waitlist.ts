@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type WaitlistResult =
   | { success: true }
@@ -13,7 +13,7 @@ export async function joinWaitlist(email: string): Promise<WaitlistResult> {
     return { success: false, error: "Voer een geldig e-mailadres in." };
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { error } = await supabase
     .from("waitlist")
