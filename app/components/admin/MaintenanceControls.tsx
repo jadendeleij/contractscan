@@ -11,13 +11,31 @@ type Props = {
   scheduledAt: string;
 };
 
+// Browser parses datetime-local strings (no tz suffix) as local time.
+// Convert to UTC ISO before saving so the server comparison is always correct.
+function toUTCIso(local: string): string {
+  if (!local) return "";
+  const d = new Date(local);
+  return isNaN(d.getTime()) ? "" : d.toISOString();
+}
+
+// Convert any stored value (UTC ISO or legacy plain string) to the
+// "YYYY-MM-DDTHH:mm" format the datetime-local input expects in local time.
+function toLocal(stored: string): string {
+  if (!stored) return "";
+  const d = new Date(stored);
+  if (isNaN(d.getTime())) return "";
+  // Shift UTC ms → local ms so toISOString produces the local clock digits
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export default function MaintenanceControls({ maintenanceMode, message, endTime, scheduledAt }: Props) {
   const [modePending, startModeTransition] = useTransition();
   const [savePending, startSaveTransition] = useTransition();
 
   const [localMsg, setLocalMsg] = useState(message);
-  const [localEnd, setLocalEnd] = useState(endTime);
-  const [localScheduled, setLocalScheduled] = useState(scheduledAt);
+  const [localEnd, setLocalEnd] = useState(() => toLocal(endTime));
+  const [localScheduled, setLocalScheduled] = useState(() => toLocal(scheduledAt));
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -39,8 +57,10 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
     setSaveError(null);
     startSaveTransition(async () => {
       try {
-        await savePlannedMaintenance(localScheduled, localMsg, localEnd);
-        setCommittedSchedule(localScheduled);
+        const scheduledISO = toUTCIso(localScheduled);
+        const endISO = toUTCIso(localEnd);
+        await savePlannedMaintenance(scheduledISO, localMsg, endISO);
+        setCommittedSchedule(scheduledISO);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       } catch (err) {

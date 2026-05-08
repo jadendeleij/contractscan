@@ -51,9 +51,9 @@ export default async function OnderhoudPage() {
         <div className="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-300 text-sm px-4 py-2 rounded-full mb-8">
           <Clock className="w-4 h-4 text-blue-400" />
           Onderhoud eindigt verwacht:{" "}
-          {parsedEnd.toLocaleDateString("nl-NL", { day: "numeric", month: "long" })}
+          {parsedEnd.toLocaleDateString("nl-NL", { day: "numeric", month: "long", timeZone: "Europe/Amsterdam" })}
           {" "}om{" "}
-          {parsedEnd.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
+          {parsedEnd.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" })}
         </div>
       )}
 

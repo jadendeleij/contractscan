@@ -8,7 +8,24 @@ async function getSettings(): Promise<Record<string, string>> {
   try {
     const db = createAdminClient();
     const { data } = await db.from("site_settings").select("key, value");
-    return Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+    const settings = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+
+    // Auto-activate: if the scheduled time has passed and maintenance_mode is still
+    // false, flip it now so the page renders the correct state immediately.
+    const scheduledAt = settings.maintenance_scheduled_at;
+    if (scheduledAt && settings.maintenance_mode !== "true") {
+      const d = new Date(scheduledAt);
+      if (!isNaN(d.getTime()) && d <= new Date()) {
+        await db.from("site_settings").upsert(
+          [{ key: "maintenance_mode", value: "true" }, { key: "maintenance_scheduled_at", value: "" }],
+          { onConflict: "key" }
+        );
+        settings.maintenance_mode = "true";
+        settings.maintenance_scheduled_at = "";
+      }
+    }
+
+    return settings;
   } catch {
     return {};
   }
@@ -67,7 +84,7 @@ export default async function BeheerPage() {
           </div>
           <div className={`text-sm font-bold ${scheduledInFuture ? "text-blue-700" : "text-slate-400"}`}>
             {scheduledInFuture && scheduledDate
-              ? scheduledDate.toLocaleDateString("nl-NL", { day: "numeric", month: "short" })
+              ? scheduledDate.toLocaleDateString("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" })
               : "Niet gepland"
             }
           </div>
