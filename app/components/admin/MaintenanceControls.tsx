@@ -11,13 +11,29 @@ type Props = {
   scheduledAt: string;
 };
 
+// datetime-local inputs need "YYYY-MM-DDTHH:mm" in the browser's local timezone.
+// We store UTC ISO strings in the DB so the server-side comparison is always correct.
+function toDatetimeLocal(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return ""; // discard unparseable legacy values
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function toUTCIso(datetimeLocal: string): string {
+  if (!datetimeLocal) return "";
+  const d = new Date(datetimeLocal); // browser parses without-tz as local time
+  return isNaN(d.getTime()) ? "" : d.toISOString();
+}
+
 export default function MaintenanceControls({ maintenanceMode, message, endTime, scheduledAt }: Props) {
   const [modePending, startModeTransition] = useTransition();
   const [savePending, startSaveTransition] = useTransition();
 
   const [localMsg, setLocalMsg] = useState(message);
-  const [localEnd, setLocalEnd] = useState(endTime);
-  const [localScheduled, setLocalScheduled] = useState(scheduledAt);
+  const [localEnd, setLocalEnd] = useState(() => toDatetimeLocal(endTime));
+  const [localScheduled, setLocalScheduled] = useState(() => toDatetimeLocal(scheduledAt));
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -39,8 +55,10 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
     setSaveError(null);
     startSaveTransition(async () => {
       try {
-        await savePlannedMaintenance(localScheduled, localMsg, localEnd);
-        setCommittedSchedule(localScheduled);
+        const scheduledISO = toUTCIso(localScheduled);
+        const endISO = toUTCIso(localEnd);
+        await savePlannedMaintenance(scheduledISO, localMsg, endISO);
+        setCommittedSchedule(scheduledISO);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       } catch (err) {
