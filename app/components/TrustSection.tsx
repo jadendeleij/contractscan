@@ -1,16 +1,73 @@
-import { Lock, ShieldCheck, Trash2, Globe, ExternalLink, BadgeCheck } from "lucide-react";
+"use client";
 
-function TechLink({ href, children }: { href: string; children: React.ReactNode }) {
+import { useState, useRef, useEffect } from "react";
+import { Lock, ShieldCheck, Trash2, Globe, BadgeCheck, ArrowRight, X } from "lucide-react";
+
+type PopupContent = {
+  title: string;
+  explanation: string;
+  blogHref: string;
+};
+
+function TechTerm({ children, popup }: { children: React.ReactNode; popup: PopupContent }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onOutside);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 font-semibold transition-colors group/tl"
-    >
-      {children}
-      <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-50 group-hover/tl:opacity-100 transition-opacity" />
-    </a>
+    <span ref={ref} className="relative inline-block">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 font-semibold transition-colors"
+      >
+        {children}
+      </button>
+
+      {open && (
+        <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-64 bg-slate-700 border border-slate-600 rounded-xl p-4 shadow-2xl text-left block">
+          {/* Arrow */}
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-700 border-l border-t border-slate-600 rotate-45" />
+
+          <span className="flex items-start justify-between gap-2 mb-2">
+            <span className="text-white font-bold text-sm leading-snug">{popup.title}</span>
+            <button
+              onClick={() => setOpen(false)}
+              className="text-slate-400 hover:text-white flex-shrink-0 mt-0.5 transition-colors"
+              aria-label="Sluiten"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </span>
+
+          <span className="text-slate-300 text-xs leading-relaxed block mb-3">
+            {popup.explanation}
+          </span>
+
+          <a
+            href={popup.blogHref}
+            className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-semibold transition-colors group/rm"
+          >
+            Lees meer
+            <ArrowRight className="w-3 h-3 group-hover/rm:translate-x-0.5 transition-transform" />
+          </a>
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -21,9 +78,13 @@ const pillars = [
     body: (
       <>
         Elke verbinding is beveiligd met{" "}
-        <TechLink href="https://en.wikipedia.org/wiki/Transport_Layer_Security">
+        <TechTerm popup={{
+          title: "TLS 1.3",
+          explanation: "TLS (Transport Layer Security) versleutelt de verbinding tussen uw browser en onze servers. Versie 1.3 is de nieuwste standaard — kwetsbaarheden uit oudere versies zijn volledig verwijderd.",
+          blogHref: "/blog/wat-is-tls-encryptie",
+        }}>
           TLS 1.3
-        </TechLink>
+        </TechTerm>
         , het modernste transportprotocol op het internet. Uw document verlaat uw
         apparaat nooit onversleuteld.
       </>
@@ -35,10 +96,14 @@ const pillars = [
     body: (
       <>
         Tijdens de analyse slaan wij data tijdelijk op met{" "}
-        <TechLink href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">
+        <TechTerm popup={{
+          title: "AES-256-encryptie",
+          explanation: "AES-256 (Advanced Encryption Standard) is de wereldstandaard voor dataveiligheid. Met een sleutellengte van 256 bits is het wiskundig onmogelijk om deze encryptie te kraken — ook voor de krachtigste supercomputers.",
+          blogHref: "/blog/wat-is-aes-256-encryptie",
+        }}>
           AES-256-encryptie
-        </TechLink>{" "}
-        — hetzelfde standaard dat banken en overheden wereldwijd gebruiken voor
+        </TechTerm>
+        {" "}— dezelfde standaard die banken en overheden wereldwijd gebruiken voor
         hun meest gevoelige bestanden.
       </>
     ),
@@ -48,13 +113,16 @@ const pillars = [
     title: "Automatisch verwijderd na analyse",
     body: (
       <>
-        Zodra uw rapport klaar is, wordt het originele document{" "}
-        <TechLink href="https://gdpr.eu/article-5-how-to-process-personal-data/">
-          permanent gewist
-        </TechLink>{" "}
-        van onze servers. Wij hanteren een strict{" "}
-        <span className="text-slate-300 font-medium">zero-retention beleid</span>:
-        geen archief, geen back-up, geen logging van inhoud.
+        Zodra uw rapport klaar is, wordt het originele document permanent gewist van onze servers.
+        Wij hanteren een strict{" "}
+        <TechTerm popup={{
+          title: "Zero-retention beleid",
+          explanation: "Zero-retention betekent dat wij uw document nooit langer bewaren dan strikt noodzakelijk. Zodra de analyse klaar is, wordt het bestand definitief verwijderd — niet gearchiveerd, niet gebackupt, geen logging van inhoud.",
+          blogHref: "/blog/zero-retention-beleid",
+        }}>
+          zero-retention beleid
+        </TechTerm>
+        : geen archief, geen back-up, geen logging van inhoud.
       </>
     ),
   },
@@ -63,16 +131,15 @@ const pillars = [
     title: "EU-servers & AVG-compliant",
     body: (
       <>
-        Al onze infrastructuur staat in Nederland en Duitsland — binnen de{" "}
-        <TechLink href="https://www.autoriteitpersoonsgegevens.nl/themas/basis-avg">
-          AVG
-        </TechLink>{" "}
-        (Europese privacywetgeving). Uw data verlaat de EU nooit. Wij zijn
-        volledig compliant met de{" "}
-        <TechLink href="https://gdpr.eu/">
-          GDPR
-        </TechLink>
-        .
+        Al onze infrastructuur staat in Nederland en Duitsland — volledig binnen de{" "}
+        <TechTerm popup={{
+          title: "AVG (GDPR)",
+          explanation: "De Algemene Verordening Gegevensbescherming (AVG) is de Europese privacywet die regelt hoe bedrijven persoonsgegevens mogen verwerken. Naleving is wettelijk verplicht voor alle bedrijven die data van EU-burgers verwerken.",
+          blogHref: "/blog/avg-gdpr-uitleg",
+        }}>
+          AVG / GDPR
+        </TechTerm>
+        . Uw data verlaat de EU nooit.
       </>
     ),
   },
