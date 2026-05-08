@@ -18,10 +18,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await createClient();
-  const { data } = await supabase.from("blog_posts").select("title, excerpt").eq("slug", slug).eq("published", true).single();
+  const { data } = await supabase.from("blog_posts").select("title, excerpt, meta_description").eq("slug", slug).eq("published", true).single();
   return {
     title: data ? `${data.title} — ContractScan AI` : "Blog",
-    description: data?.excerpt ?? "",
+    description: data?.meta_description || data?.excerpt || "",
   };
 }
 
@@ -72,6 +72,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-4">
             {post.title}
           </h1>
+
+          {/* Tags */}
+          {Array.isArray(post.tags) && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(post.tags as string[]).map((tag) => (
+                <span key={tag} className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Excerpt / lead */}
           {post.excerpt && (

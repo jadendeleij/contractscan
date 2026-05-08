@@ -17,7 +17,7 @@ export default async function BlogPage() {
   const supabase = await createClient();
   const { data: posts } = await supabase
     .from("blog_posts")
-    .select("id, slug, title, excerpt, category, created_at")
+    .select("id, slug, title, excerpt, category, tags, created_at")
     .eq("published", true)
     .order("created_at", { ascending: false });
 
@@ -56,6 +56,15 @@ export default async function BlogPage() {
                     {post.title}
                   </h2>
                   <p className="text-slate-500 text-sm leading-relaxed flex-1">{post.excerpt}</p>
+                  {Array.isArray(post.tags) && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {(post.tags as string[]).slice(0, 4).map((tag) => (
+                        <span key={tag} className="text-[11px] font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-blue-600 group-hover:gap-2 transition-all">
                     Lees meer <ArrowRight className="w-4 h-4" />
                   </div>

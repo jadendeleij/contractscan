@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Save, Eye, EyeOff } from "lucide-react";
 import { createPost, updatePost } from "@/app/actions/blog";
 import dynamic from "next/dynamic";
+import TagInput from "./TagInput";
 
 const RichTextEditor = dynamic(() => import("./RichTextEditor"), { ssr: false });
 
@@ -19,6 +20,8 @@ type Post = {
   category: string;
   published: boolean;
   author: string;
+  tags: string[];
+  meta_description: string | null;
 };
 
 function toSlug(title: string) {
@@ -42,7 +45,7 @@ export default function BlogPostForm({ post }: { post?: Post }) {
   const [slugEdited, setSlugEdited] = useState(isEdit);
   const [content, setContent] = useState(post?.content ?? "");
   const [published, setPublished] = useState(post?.published ?? false);
-  const [author] = useState(post?.author ?? "Redactie");
+  const [metaLen, setMetaLen] = useState((post?.meta_description ?? "").length);
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -56,13 +59,11 @@ export default function BlogPostForm({ post }: { post?: Post }) {
     const formData = new FormData(form);
     formData.set("content", content);
     formData.set("published", published ? "on" : "");
-    formData.set("author", author);
     startTransition(async () => {
       try {
         if (isEdit) await updatePost(formData);
         else await createPost(formData);
       } catch (err) {
-        // Re-throw Next.js redirect so navigation completes correctly
         if ((err as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw err;
         setError(err instanceof Error ? err.message : "Er is iets misgegaan.");
       }
@@ -111,7 +112,7 @@ export default function BlogPostForm({ post }: { post?: Post }) {
           <label className={labelCls}>Auteur</label>
           <input
             name="author"
-            defaultValue={author}
+            defaultValue={post?.author ?? "Redactie"}
             placeholder="Redactie"
             className={inputCls}
           />
@@ -123,6 +124,12 @@ export default function BlogPostForm({ post }: { post?: Post }) {
           <select name="category" defaultValue={post?.category ?? "Beveiliging"} className={inputCls}>
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
+        </div>
+
+        {/* Tags */}
+        <div>
+          <label className={labelCls}>Tags</label>
+          <TagInput defaultTags={post?.tags ?? []} />
         </div>
 
         {/* Excerpt */}
@@ -138,6 +145,26 @@ export default function BlogPostForm({ post }: { post?: Post }) {
             placeholder="Korte beschrijving die op de blogpagina verschijnt..."
             className={`${inputCls} resize-none`}
           />
+        </div>
+
+        {/* Meta description */}
+        <div className="md:col-span-2">
+          <label className={labelCls}>
+            Meta description{" "}
+            <span className="text-slate-400 font-normal">(max. 160 tekens — voor zoekmachines zoals Google)</span>
+          </label>
+          <textarea
+            name="meta_description"
+            rows={2}
+            maxLength={160}
+            defaultValue={post?.meta_description ?? ""}
+            onChange={(e) => setMetaLen(e.target.value.length)}
+            placeholder="Beschrijving die in zoekresultaten verschijnt — laat leeg om de samenvatting te gebruiken"
+            className={`${inputCls} resize-none`}
+          />
+          <p className={`text-xs mt-1 text-right ${metaLen > 150 ? "text-amber-500" : "text-slate-400"}`}>
+            {metaLen} / 160
+          </p>
         </div>
 
         {/* Rich text content */}

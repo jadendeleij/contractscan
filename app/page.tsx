@@ -19,6 +19,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import TrustSection from "./components/TrustSection";
 import FAQSection from "./components/FAQSection";
+import BlogSection from "./components/BlogSection";
+import { Suspense } from "react";
 
 /* ── DATA ─────────────────────────────────────── */
 
@@ -488,6 +490,11 @@ export default function Home() {
 
       {/* ── FAQ ───────────────────────────────────────── */}
       <FAQSection />
+
+      {/* ── BLOG SECTIE ───────────────────────────────── */}
+      <Suspense fallback={null}>
+        <BlogSection />
+      </Suspense>
 
       {/* ── CTA BANNER ────────────────────────────────── */}
       <section className="py-24 px-6 bg-blue-600">

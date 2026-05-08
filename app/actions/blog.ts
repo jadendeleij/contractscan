@@ -25,14 +25,19 @@ export async function createPost(formData: FormData) {
   await requireAdmin();
   const db = createAdminClient();
 
+  const tagsRaw = formData.get("tags") as string;
+  const metaDesc = (formData.get("meta_description") as string).trim() || null;
+
   const { error } = await db.from("blog_posts").insert({
-    title:     formData.get("title")     as string,
-    slug:      formData.get("slug")      as string,
-    excerpt:   formData.get("excerpt")   as string,
-    content:   formData.get("content")   as string,
-    category:  formData.get("category")  as string,
-    author:    (formData.get("author") as string) || "Redactie",
-    published: formData.get("published") === "on",
+    title:            formData.get("title")    as string,
+    slug:             formData.get("slug")     as string,
+    excerpt:          formData.get("excerpt")  as string,
+    content:          formData.get("content")  as string,
+    category:         formData.get("category") as string,
+    author:           (formData.get("author")  as string) || "Redactie",
+    tags:             tagsRaw ? JSON.parse(tagsRaw) : [],
+    meta_description: metaDesc,
+    published:        formData.get("published") === "on",
   });
 
   if (error) throw new Error(error.message);
@@ -47,15 +52,20 @@ export async function updatePost(formData: FormData) {
   const db = createAdminClient();
   const id = formData.get("id") as string;
 
+  const tagsRaw = formData.get("tags") as string;
+  const metaDesc = (formData.get("meta_description") as string).trim() || null;
+
   const { error } = await db.from("blog_posts").update({
-    title:      formData.get("title")     as string,
-    slug:       formData.get("slug")      as string,
-    excerpt:    formData.get("excerpt")   as string,
-    content:    formData.get("content")   as string,
-    category:   formData.get("category")  as string,
-    author:     (formData.get("author") as string) || "Redactie",
-    published:  formData.get("published") === "on",
-    updated_at: new Date().toISOString(),
+    title:            formData.get("title")    as string,
+    slug:             formData.get("slug")     as string,
+    excerpt:          formData.get("excerpt")  as string,
+    content:          formData.get("content")  as string,
+    category:         formData.get("category") as string,
+    author:           (formData.get("author")  as string) || "Redactie",
+    tags:             tagsRaw ? JSON.parse(tagsRaw) : [],
+    meta_description: metaDesc,
+    published:        formData.get("published") === "on",
+    updated_at:       new Date().toISOString(),
   }).eq("id", id);
 
   if (error) throw new Error(error.message);
