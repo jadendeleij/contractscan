@@ -21,6 +21,7 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
   const [localEnd, setLocalEnd] = useState(endTime);
   const [localScheduled, setLocalScheduled] = useState(scheduledAt);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Mirrors what's actually committed to the DB so status banner updates immediately
   // after save/cancel without waiting for a server re-render.
@@ -37,23 +38,33 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
   }
 
   function handleSave() {
+    setSaveError(null);
     startSaveTransition(async () => {
-      await savePlannedMaintenance(localScheduled, localMsg, localEnd);
-      setCommittedSchedule(localScheduled);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-      router.refresh();
+      try {
+        await savePlannedMaintenance(localScheduled, localMsg, localEnd);
+        setCommittedSchedule(localScheduled);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        router.refresh();
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : "Opslaan mislukt");
+      }
     });
   }
 
   function handleCancelSchedule() {
+    setSaveError(null);
     startSaveTransition(async () => {
-      await saveScheduledMaintenance("");
-      setCommittedSchedule("");
-      setLocalScheduled("");
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-      router.refresh();
+      try {
+        await saveScheduledMaintenance("");
+        setCommittedSchedule("");
+        setLocalScheduled("");
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        router.refresh();
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : "Annuleren mislukt");
+      }
     });
   }
 
@@ -219,6 +230,9 @@ export default function MaintenanceControls({ maintenanceMode, message, endTime,
                 <CheckCircle className="w-4 h-4" />
                 Opgeslagen
               </span>
+            )}
+            {saveError && !savePending && (
+              <span className="text-red-600 text-sm font-medium">{saveError}</span>
             )}
           </div>
         </div>
