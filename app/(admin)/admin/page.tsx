@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   Users, Bell, FileText, TrendingUp, ArrowUpRight,
-  Plus, Eye, UserCheck, Globe, Zap,
+  Plus, Eye, UserCheck, Globe, Zap, Wrench, AlertTriangle, Code2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -42,7 +42,7 @@ function QuickAction({ href, icon, label, desc, color }: { href: string; icon: R
 export default async function AdminDashboard() {
   const db = createAdminClient();
 
-  const [usersRes, waitlistRes, postsRes, publishedRes, recentWaitlistRes, recentPostsRes] =
+  const [usersRes, waitlistRes, postsRes, publishedRes, recentWaitlistRes, recentPostsRes, siteSettingsRes] =
     await Promise.all([
       db.auth.admin.listUsers({ perPage: 1000 }),
       db.from("waitlist").select("email, created_at").order("created_at", { ascending: false }),
@@ -50,12 +50,16 @@ export default async function AdminDashboard() {
       db.from("blog_posts").select("*", { count: "exact", head: true }).eq("published", true),
       db.from("waitlist").select("email, created_at").order("created_at", { ascending: false }).limit(6),
       db.from("blog_posts").select("id, title, category, published, created_at").order("created_at", { ascending: false }).limit(5),
+      db.from("site_settings").select("key, value"),
     ]);
 
   const allUsers: User[] = usersRes.data?.users ?? [];
   const allWaitlist = waitlistRes.data ?? [];
   const allPosts = postsRes.data ?? [];
   const publishedCount = publishedRes.count ?? 0;
+  const siteSettings = Object.fromEntries((siteSettingsRes.data ?? []).map((r) => [r.key, r.value]));
+  const maintenanceMode = siteSettings.maintenance_mode === "true";
+  const devMode = siteSettings.dev_mode === "true";
 
   // Time-based stats
   const now = Date.now();
@@ -80,6 +84,7 @@ export default async function AdminDashboard() {
     { href: "/admin/blog", icon: <Eye className="w-4 h-4 text-green-600" />, label: "Posts beheren", desc: `${allPosts.filter(p => !p.published).length} concepten wachten`, color: "bg-green-50" },
     { href: "/admin/gebruikers", icon: <Users className="w-4 h-4 text-violet-600" />, label: "Gebruikers bekijken", desc: `${allUsers.length} geregistreerd`, color: "bg-violet-50" },
     { href: "/admin/analytics", icon: <Zap className="w-4 h-4 text-amber-600" />, label: "Analytics bekijken", desc: "Groei & statistieken", color: "bg-amber-50" },
+    { href: "/admin/beheer", icon: <Wrench className="w-4 h-4 text-red-500" />, label: "Site beheer", desc: maintenanceMode ? "Onderhoudsmodus actief" : devMode ? "Ontwikkelmodus actief" : "Site is online", color: "bg-red-50" },
   ];
 
   return (
@@ -92,6 +97,37 @@ export default async function AdminDashboard() {
         </p>
       </div>
 
+      {/* Site status alert */}
+      {(maintenanceMode || devMode) && (
+        <Link
+          href="/admin/beheer"
+          className={`flex items-start gap-3 px-4 py-4 rounded-xl border transition-all hover:shadow-sm ${
+            maintenanceMode
+              ? "bg-red-50 border-red-200 hover:border-red-300"
+              : "bg-amber-50 border-amber-200 hover:border-amber-300"
+          }`}
+        >
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${maintenanceMode ? "bg-red-100" : "bg-amber-100"}`}>
+            {maintenanceMode
+              ? <Wrench className="w-4 h-4 text-red-600" />
+              : <Code2 className="w-4 h-4 text-amber-600" />
+            }
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`font-semibold text-sm ${maintenanceMode ? "text-red-800" : "text-amber-800"}`}>
+              {maintenanceMode ? "Onderhoudsmodus is actief" : "Ontwikkelmodus is actief"}
+            </p>
+            <p className={`text-xs mt-0.5 ${maintenanceMode ? "text-red-600" : "text-amber-600"}`}>
+              {maintenanceMode
+                ? "Externe bezoekers zien de onderhoudspagina."
+                : "Bezoekers zonder bypass-cookie zien de onderhoudspagina."}
+              {" "}Klik om te beheren.
+            </p>
+          </div>
+          <AlertTriangle className={`w-4 h-4 flex-shrink-0 mt-1 ${maintenanceMode ? "text-red-400" : "text-amber-400"}`} />
+        </Link>
+      )}
+
       {/* KPI grid */}
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
         {stats.map((s) => <StatCard key={s.label} {...s} />)}
@@ -100,7 +136,7 @@ export default async function AdminDashboard() {
       {/* Quick actions */}
       <div>
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Snelle acties</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
           {quickActions.map((a) => <QuickAction key={a.href} {...a} />)}
         </div>
       </div>

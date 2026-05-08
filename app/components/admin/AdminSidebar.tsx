@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, Users, Home, LogOut,
-  ScanText, BarChart2, Settings, Bell, ChevronRight, Shield,
+  ScanText, BarChart2, Settings, Bell, ChevronRight, Shield, Wrench,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -32,6 +32,7 @@ const sections = [
   {
     label: "Systeem",
     items: [
+      { href: "/admin/beheer",       label: "Site Beheer",   icon: Wrench,   exact: false },
       { href: "/admin/privacy",      label: "Privacy & AVG", icon: Shield,   exact: false },
       { href: "/admin/instellingen", label: "Instellingen",  icon: Settings, exact: false },
     ],

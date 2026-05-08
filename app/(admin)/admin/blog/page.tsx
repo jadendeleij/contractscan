@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Plus, Pencil, ExternalLink } from "lucide-react";
+import { Plus, Pencil, ExternalLink, Eye } from "lucide-react";
 import DeletePostButton from "@/app/components/admin/DeletePostButton";
 import PublishToggle from "@/app/components/admin/PublishToggle";
 
@@ -85,7 +85,7 @@ export default async function AdminBlogPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">
-                        {post.published && (
+                        {post.published ? (
                           <Link
                             href={`/blog/${post.slug}`}
                             target="_blank"
@@ -93,6 +93,14 @@ export default async function AdminBlogPage() {
                             title="Bekijk live"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/admin/blog/${post.id}/preview`}
+                            className="p-1.5 text-slate-300 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                            title="Voorvertoning"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
                           </Link>
                         )}
                         <Link

@@ -3,6 +3,35 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PROTECTED_PATHS = ["/dashboard", "/scan", "/account", "/admin"];
 const AUTH_PATHS = ["/login", "/register"];
+// These paths always pass through even during maintenance / dev mode
+const BYPASS_PATHS = ["/onderhoud", "/api/bypass", "/api/", "/_next/", "/favicon.ico"];
+
+/* ── Module-level cache (helps when Edge instance stays warm) ── */
+let _modeCache: { maintenance: boolean; dev: boolean; ts: number } | null = null;
+
+async function getSiteMode(): Promise<{ maintenance: boolean; dev: boolean }> {
+  const now = Date.now();
+  if (_modeCache && now - _modeCache.ts < 30_000) return _modeCache;
+
+  try {
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/site_settings?select=key,value`;
+    const res = await fetch(url, {
+      headers: {
+        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+      },
+      signal: AbortSignal.timeout(1500),
+    });
+    if (!res.ok) throw new Error("fetch failed");
+    const rows: { key: string; value: string }[] = await res.json();
+    const get = (k: string) => rows.find((r) => r.key === k)?.value === "true";
+    _modeCache = { maintenance: get("maintenance_mode"), dev: get("dev_mode"), ts: now };
+  } catch {
+    // Fail open — never block the site due to a settings fetch error
+    _modeCache = { maintenance: false, dev: false, ts: now };
+  }
+  return _modeCache;
+}
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -12,13 +41,9 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
+        getAll() { return request.cookies.getAll(); },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -28,14 +53,37 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Ververs de sessie — verwijder deze aanroep nooit
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Always refresh the session — do not remove this call
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
 
-  // Niet ingelogd maar beschermde route → redirect naar login
+  // ── Site mode checks (maintenance / dev) ────────────────────────
+  const isAlwaysAllowed = BYPASS_PATHS.some((p) => pathname.startsWith(p));
+  const isAdminPath = pathname.startsWith("/admin");
+
+  if (!isAlwaysAllowed && !isAdminPath) {
+    const mode = await getSiteMode();
+
+    if (mode.maintenance) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onderhoud";
+      url.searchParams.set("mode", "maintenance");
+      return NextResponse.redirect(url);
+    }
+
+    if (mode.dev) {
+      const bypassCookie = request.cookies.get("_bypass");
+      if (!bypassCookie) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/onderhoud";
+        url.searchParams.set("mode", "dev");
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
+  // ── Auth checks ─────────────────────────────────────────────────
   if (!user && PROTECTED_PATHS.some((p) => pathname.startsWith(p))) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
@@ -43,7 +91,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Al ingelogd maar auth-pagina → redirect naar dashboard
   if (user && AUTH_PATHS.some((p) => pathname.startsWith(p))) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
