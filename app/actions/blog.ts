@@ -8,10 +8,16 @@ import { createClient } from "@/lib/supabase/server";
 async function requireAdmin() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
-  if (!data.user || !admins.includes(data.user.email ?? "")) {
-    throw new Error("Unauthorized");
-  }
+  if (!data.user) throw new Error("Unauthorized");
+
+  const db = createAdminClient();
+  const { data: profile } = await db
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", data.user.id)
+    .single();
+
+  if (!profile?.is_admin) throw new Error("Unauthorized");
   return data.user;
 }
 

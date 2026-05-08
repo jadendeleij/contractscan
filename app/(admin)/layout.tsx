@@ -1,13 +1,22 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/app/components/admin/AdminSidebar";
 
 async function getAdminUser() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
-  if (!data.user || !admins.includes(data.user.email ?? "")) return null;
-  return data.user;
+  if (!data.user) return null;
+
+  // Check via service-role client (bypasses RLS) of is_admin = true
+  const db = createAdminClient();
+  const { data: profile } = await db
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", data.user.id)
+    .single();
+
+  return profile?.is_admin ? data.user : null;
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
