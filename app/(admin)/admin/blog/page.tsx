@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from "lucide-react";
-import { deletePost, togglePublished } from "@/app/actions/blog";
+import { Plus, Pencil, Eye, EyeOff, ExternalLink } from "lucide-react";
+import { togglePublished } from "@/app/actions/blog";
+import DeletePostButton from "@/app/components/admin/DeletePostButton";
 
 export default async function AdminBlogPage() {
   const db = createAdminClient();
@@ -115,16 +116,7 @@ export default async function AdminBlogPage() {
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </Link>
-                        <form action={deletePost.bind(null, post.id)}>
-                          <button
-                            type="submit"
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Verwijderen"
-                            onClick={(e) => { if (!confirm(`"${post.title}" definitief verwijderen?`)) e.preventDefault(); }}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </form>
+                        <DeletePostButton id={post.id} title={post.title} />
                       </div>
                     </td>
                   </tr>
